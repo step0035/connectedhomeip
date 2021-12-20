@@ -24,6 +24,14 @@
  */
 
 #include "LEDWidget.h"
+#if 1 // test_event_6.lts
+#include <app-common/zap-generated/attribute-id.h>
+#include <app-common/zap-generated/cluster-id.h>
+#include <app/server/Server.h>
+#include <app/util/attribute-storage.h>
+#else // master 2021-12-19
+#include <app/clusters/on-off-server/on-off-server.h>
+#endif
 
 gpio_t gpio_led;
 
@@ -51,6 +59,7 @@ void LEDWidget::Set(bool state)
 void LEDWidget::DoSet(bool state)
 {
     bool stateChange = (mState != state);
+
     mState           = state;
 
     if (stateChange)
@@ -59,3 +68,19 @@ void LEDWidget::DoSet(bool state)
     }
 }
 
+extern "C" void changeValue(bool value)
+{
+    uint8_t newValue = value;
+    // write the new on/off value
+#if 1 // test_event_6.lts
+    EmberAfStatus status = emberAfWriteAttribute(1/*endpoint*/, ZCL_ON_OFF_CLUSTER_ID, ZCL_ON_OFF_ATTRIBUTE_ID, CLUSTER_MASK_SERVER,
+                                                 (uint8_t *) &newValue, ZCL_BOOLEAN_ATTRIBUTE_TYPE);
+#else
+    // master 2021-12-19
+    EmberAfStatus status = OnOffServer::Instance().setOnOffValue(1, newValue, false);
+#endif
+    if (status != EMBER_ZCL_STATUS_SUCCESS)
+    {
+        printf("ERR: updating on/off %x", status);
+    }
+}
