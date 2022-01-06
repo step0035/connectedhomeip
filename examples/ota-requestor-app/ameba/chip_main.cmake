@@ -21,19 +21,14 @@ list(
     ${chip_dir}/examples/ota-requestor-app/ameba/main/chipinterface.cpp
     ${chip_dir}/examples/ota-requestor-app/ameba/main/Globals.cpp
     ${chip_dir}/examples/ota-requestor-app/ameba/main/LEDWidget.cpp
-    #${chip_dir}/examples/ota-requestor-app/ameba/main/ZclCallbacks.cpp
-    #${chip_dir}/examples/ota-requestor-app/ameba/main/AppTask.cpp
     ${chip_dir}/examples/ota-requestor-app/ameba/main/CHIPDeviceManager.cpp
     ${chip_dir}/examples/ota-requestor-app/ameba/main/DeviceCallbacks.cpp
     ${chip_dir}/src/platform/Ameba/AmebaOTAImageProcessor.cpp
-    ${chip_dir}/src/platform/GenericOTARequestorDriver.cpp
 
     ${chip_dir}/src/app/clusters/ota-requestor/BDXDownloader.cpp
     ${chip_dir}/src/app/clusters/ota-requestor/OTARequestor.cpp
     ${chip_dir}/src/app/clusters/ota-requestor/ota-requestor-server.cpp
     ${chip_dir}/src/app/util/im-client-callbacks.cpp
-
-    ${sdk_root}/component/soc/realtek/amebad/misc/rtl8721d_ota.c
 )
 
 add_library(
