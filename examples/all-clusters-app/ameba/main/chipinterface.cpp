@@ -36,6 +36,11 @@
 #include <setup_payload/QRCodeSetupPayloadGenerator.h>
 #include <support/CHIPMem.h>
 
+#include "platform/Ameba/AmebaOTAImageProcessor.h"
+#include "platform/GenericOTARequestorDriver.h"
+#include "app/clusters/ota-requestor/BDXDownloader.h"
+#include "app/clusters/ota-requestor/OTARequestor.h"
+
 #if CONFIG_ENABLE_PW_RPC
 #include "Rpc.h"
 #endif
@@ -44,6 +49,7 @@ using namespace ::chip;
 using namespace ::chip::Credentials;
 using namespace ::chip::DeviceManager;
 using namespace ::chip::DeviceLayer;
+using namespace ::chip::System;
 
 Identify gIdentify0 = {
     chip::EndpointId{ 0 },
@@ -71,6 +77,11 @@ Identify gIdentify1 = {
 #endif
 
 static DeviceCallbacks EchoCallbacks;
+
+OTARequestor gRequestorCore;
+GenericOTARequestorDriver gRequestorUser;
+BDXDownloader gDownloader;
+AmebaOTAImageProcessor gImageProcessor;
 
 void GetGatewayIP(char * ip_buf, size_t ip_len)
 {
@@ -185,6 +196,65 @@ std::string createSetupPayload()
     return result;
 };
 
+void QueryImageTimerHandler(Layer * systemLayer, void * appState)
+{
+    ChipLogProgress(DeviceLayer, "QueryImageTimerHandler");
+    static_cast<OTARequestor *>(GetRequestorInstance())->TriggerImmediateQuery();
+}
+
+void ApplyUpdateTimerHandler(Layer * systemLayer, void * appState)
+{
+    ChipLogProgress(DeviceLayer, "ApplyUpdateTimerHandler");
+    static_cast<OTARequestor *>(GetRequestorInstance())->ApplyUpdate();
+}
+
+extern "C" void amebaQueryImageCmdHandler(uint32_t nodeId, uint32_t fabricId)
+{
+    ChipLogProgress(DeviceLayer, "Calling amebaQueryImageCmdHandler");
+    // In this mode Provider node ID and fabric idx must be supplied explicitly from ATS$ cmd
+    gRequestorCore.TestModeSetProviderParameters(nodeId, fabricId, chip::kRootEndpointId);
+
+    /* Start one shot timer with 1 second timeout to send QueryImage Request command */
+    chip::DeviceLayer::SystemLayer().StartTimer(chip::System::Clock::Milliseconds32(1 * 1000), QueryImageTimerHandler, nullptr);
+}
+
+extern "C" void amebaApplyUpdateCmdHandler()
+{
+    ChipLogProgress(DeviceLayer, "Calling amebaApplyUpdateCmdHandler");
+
+    /* Start one shot timer with 1 second timeout to send QueryImage Request command */
+    chip::DeviceLayer::SystemLayer().StartTimer(chip::System::Clock::Milliseconds32(1 * 1000), ApplyUpdateTimerHandler, nullptr);
+}
+
+static void InitOTARequestor(void)
+{
+    // Initialize and interconnect the Requestor and Image Processor objects -- START
+    SetRequestorInstance(&gRequestorCore);
+
+    // Set server instance used for session establishment
+    chip::Server * server = &(chip::Server::GetInstance());
+    gRequestorCore.SetServerInstance(server);
+
+    // Connect the Requestor and Requestor Driver objects
+    gRequestorCore.SetOtaRequestorDriver(&gRequestorUser);
+
+    // WARNING: this is probably not realistic to know such details of the image or to even have an OTADownloader instantiated at
+    // the beginning of program execution. We're using hardcoded values here for now since this is a reference application.
+    // TODO: instatiate and initialize these values when QueryImageResponse tells us an image is available
+    // TODO: add API for OTARequestor to pass QueryImageResponse info to the application to use for OTADownloader init
+    OTAImageProcessorParams ipParams;
+    gImageProcessor.SetOTAImageProcessorParams(ipParams);
+    gImageProcessor.SetOTADownloader(&gDownloader);
+
+    // Connect the Downloader and Image Processor objects
+    gDownloader.SetImageProcessorDelegate(&gImageProcessor);
+    gRequestorUser.Init(&gRequestorCore, &gImageProcessor);
+
+    gRequestorCore.SetBDXDownloader(&gDownloader);
+    // Initialize and interconnect the Requestor and Image Processor objects -- END
+
+}
+
 extern "C" void ChipTest(void)
 {
     ChipLogProgress(DeviceLayer, "All Clusters Demo!");
@@ -229,8 +299,7 @@ extern "C" void ChipTest(void)
 
     statusLED1.Init(STATUS_LED_GPIO_NUM);
 
-    while (true)
-        vTaskDelay(pdMS_TO_TICKS(50));
+    InitOTARequestor();
 }
 
 bool lowPowerClusterSleep()
