@@ -231,7 +231,7 @@ void ApplyUpdateTimerHandler(Layer * systemLayer, void * appState)
 extern "C" void amebaQueryImageCmdHandler(uint32_t nodeId, uint32_t fabricId)
 {
     ChipLogProgress(DeviceLayer, "Calling amebaQueryImageCmdHandler");
-    // In this mode Provider node ID and fabric idx must be supplied explicitly from ATS$ cmd 
+    // In this mode Provider node ID and fabric idx must be supplied explicitly from ATS$ cmd
     gRequestorCore.TestModeSetProviderParameters(nodeId, fabricId, chip::kRootEndpointId);
 
     /* Start one shot timer with 1 second timeout to send QueryImage Request command */
@@ -253,10 +253,9 @@ static void InitOTARequestor(void)
 
     // Set server instance used for session establishment
     chip::Server * server = &(chip::Server::GetInstance());
-    gRequestorCore.SetServerInstance(server);
 
-    // Connect the Requestor and Requestor Driver objects
-    gRequestorCore.SetOtaRequestorDriver(&gRequestorUser);
+    // Init the Requestor/Downloader and Requestor/Downloader Driver objects
+    gRequestorCore.Init(&Server::GetInstance(), &gRequestorUser, &gDownloader);
 
     // WARNING: this is probably not realistic to know such details of the image or to even have an OTADownloader instantiated at
     // the beginning of program execution. We're using hardcoded values here for now since this is a reference application.
@@ -270,7 +269,6 @@ static void InitOTARequestor(void)
     gDownloader.SetImageProcessorDelegate(&gImageProcessor);
     gRequestorUser.Init(&gRequestorCore, &gImageProcessor);
 
-    gRequestorCore.SetBDXDownloader(&gDownloader);
     // Initialize and interconnect the Requestor and Image Processor objects -- END
 
 }
