@@ -375,7 +375,10 @@ void AmebaOTAImageProcessor::HandleApply(intptr_t context)
     if (requestor != nullptr)
     {
         // TODO: Use software version from Configuration Manager
-        requestor->NotifyUpdateApplied(imageProcessor->mSoftwareVersion);
+        uint32_t savedSoftwareVersion;
+        chip::DeviceLayer::ConfigurationManagerImpl().GetSoftwareVersion(savedSoftwareVersion);
+        chip::DeviceLayer::ConfigurationManagerImpl().StoreSoftwareVersion(savedSoftwareVersion + 1);
+        requestor->NotifyUpdateApplied(savedSoftwareVersion + 1);
     }
 
     // Reboot

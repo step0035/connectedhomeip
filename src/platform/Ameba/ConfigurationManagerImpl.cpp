@@ -57,6 +57,13 @@ CHIP_ERROR ConfigurationManagerImpl::Init()
     err = AmebaConfig::EnsureNamespace(AmebaConfig::kConfigNamespace_ChipCounters);
     SuccessOrExit(err);
 
+    // Save software version on first boot
+    if (!AmebaConfig::ConfigValueExists(AmebaConfig::kConfigKey_SoftwareVersion))
+    {
+        err = StoreSoftwareVersion(CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
+        SuccessOrExit(err);
+    }
+
     if (AmebaConfig::ConfigValueExists(AmebaConfig::kCounterKey_RebootCount))
     {
         err = GetRebootCount(rebootCount);
@@ -128,6 +135,16 @@ CHIP_ERROR ConfigurationManagerImpl::GetBootReason(uint32_t & bootReason)
 CHIP_ERROR ConfigurationManagerImpl::StoreBootReason(uint32_t bootReason)
 {
     return WriteConfigValue(AmebaConfig::kCounterKey_BootReason, bootReason);
+}
+
+CHIP_ERROR ConfigurationManagerImpl::GetSoftwareVersion(uint32_t & softwareVersion)
+{
+    return ReadConfigValue(AmebaConfig::kConfigKey_SoftwareVersion, softwareVersion);
+}
+
+CHIP_ERROR ConfigurationManagerImpl::StoreSoftwareVersion(uint32_t softwareVersion)
+{
+    return WriteConfigValue(AmebaConfig::kConfigKey_SoftwareVersion, softwareVersion);
 }
 
 CHIP_ERROR ConfigurationManagerImpl::GetPrimaryWiFiMACAddress(uint8_t * buf)

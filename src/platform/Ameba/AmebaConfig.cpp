@@ -52,6 +52,7 @@ const AmebaConfig::Key AmebaConfig::kConfigKey_MfrDeviceId           = { kConfig
 const AmebaConfig::Key AmebaConfig::kConfigKey_MfrDeviceCert         = { kConfigNamespace_ChipFactory, "device-cert" };
 const AmebaConfig::Key AmebaConfig::kConfigKey_MfrDeviceICACerts     = { kConfigNamespace_ChipFactory, "device-ca-certs" };
 const AmebaConfig::Key AmebaConfig::kConfigKey_MfrDevicePrivateKey   = { kConfigNamespace_ChipFactory, "device-key" };
+const AmebaConfig::Key AmebaConfig::kConfigKey_SoftwareVersion       = { kConfigNamespace_ChipFactory, "software-ver" };
 const AmebaConfig::Key AmebaConfig::kConfigKey_HardwareVersion       = { kConfigNamespace_ChipFactory, "hardware-ver" };
 const AmebaConfig::Key AmebaConfig::kConfigKey_ManufacturingDate     = { kConfigNamespace_ChipFactory, "mfg-date" };
 const AmebaConfig::Key AmebaConfig::kConfigKey_SetupPinCode          = { kConfigNamespace_ChipFactory, "pin-code" };
