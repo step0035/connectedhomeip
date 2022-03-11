@@ -97,6 +97,9 @@ extern "C" void amebaApplyUpdateCmdHandler()
 
 static void InitOTARequestor(void)
 {
+    // Set RequestorCanConsent to true
+    gRequestorCore.SetRequestorCanConsent(true);
+
     // Initialize and interconnect the Requestor and Image Processor objects -- START
     SetRequestorInstance(&gRequestorCore);
 
