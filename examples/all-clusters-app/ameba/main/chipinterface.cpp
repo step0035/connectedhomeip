@@ -100,14 +100,13 @@ AmebaOTAImageProcessor gImageProcessor;
 extern "C" void amebaQueryImageCmdHandler()
 {
     ChipLogProgress(DeviceLayer, "Calling amebaQueryImageCmdHandler");
-    static_cast<OTARequestor *>(GetRequestorInstance())->TriggerImmediateQuery();
+    PlatformMgr().ScheduleWork([](intptr_t) { GetRequestorInstance()->TriggerImmediateQuery(); });
 }
 
 extern "C" void amebaApplyUpdateCmdHandler()
 {
     ChipLogProgress(DeviceLayer, "Calling amebaApplyUpdateCmdHandler");
-
-    static_cast<OTARequestor *>(GetRequestorInstance())->ApplyUpdate();
+    PlatformMgr().ScheduleWork([](intptr_t) { GetRequestorInstance()->ApplyUpdate(); });
 }
 
 static void InitOTARequestor(void)
