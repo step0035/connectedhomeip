@@ -181,25 +181,6 @@ extern "C" void ChipTest(void)
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(InitServer, 0);
 
-    uint32_t savedSoftwareVersion;
-    err = ConfigurationMgr().GetSoftwareVersion(savedSoftwareVersion);
-    if (err != CHIP_NO_ERROR)
-    {
-        ChipLogError(DeviceLayer, "Can't get saved software version\r\n");
-    }
-
-    if (savedSoftwareVersion != CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION)
-    {
-        ConfigurationManagerImpl().StoreSoftwareVersion(CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
-
-        ChipLogProgress(DeviceLayer, "Confirming update to version: %d", CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION);
-        chip::OTARequestorInterface * requestor = chip::GetRequestorInstance();
-        if (requestor != nullptr)
-        {
-            requestor->NotifyUpdateApplied(savedSoftwareVersion);
-        }
-    }
-
     statusLED1.Init(STATUS_LED_GPIO_NUM);
 }
 

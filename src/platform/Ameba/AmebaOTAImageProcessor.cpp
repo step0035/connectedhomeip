@@ -371,6 +371,16 @@ void AmebaOTAImageProcessor::HandleApply(intptr_t context)
         return;
     }
 
+    OTARequestorInterface * requestor = chip::GetRequestorInstance();
+    if (requestor != nullptr)
+    {
+        // TODO: Use software version from Configuration Manager
+        uint32_t savedSoftwareVersion;
+        chip::DeviceLayer::ConfigurationManagerImpl().GetSoftwareVersion(savedSoftwareVersion);
+        chip::DeviceLayer::ConfigurationManagerImpl().StoreSoftwareVersion(savedSoftwareVersion + 1);
+        requestor->NotifyUpdateApplied(savedSoftwareVersion + 1);
+    }
+
     // Reboot
     ota_platform_reset();
 }
