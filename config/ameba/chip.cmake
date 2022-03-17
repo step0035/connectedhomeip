@@ -10,7 +10,11 @@ set(chip-gn chip-gn)
 
 get_filename_component(CHIP_ROOT ${chip_dir} REALPATH)
 get_filename_component(CHIP_OUTPUT ${chip_dir_output} REALPATH)
+if (matter_platform_8721d)
 get_filename_component(LIB_ROOT ${prj_root}/GCC-RELEASE/project_hp/asdk/lib/application REALPATH)
+elseif (matter_platform_8710c)
+get_filename_component(LIB_ROOT ${sdk_root}/component/soc/realtek/8710c/misc/bsp/lib/common/GCC REALPATH)
+endif()
 
 include(ExternalProject)
 
@@ -21,7 +25,6 @@ list(
     APPEND CHIP_CFLAGS
 
     -DCHIP_PROJECT=1
-    -DCONFIG_PLATFORM_8721D
     -DCONFIG_USE_MBEDTLS_ROM_ALG
     -DCONFIG_FUNCION_O0_OPTIMIZE
     -DDM_ODM_SUPPORT_TYPE=32
@@ -29,6 +32,20 @@ list(
     -DMBEDTLS_CONFIG_FILE=<mbedtls_config.h>
     -D_POSIX_REALTIME_SIGNALS
 )
+
+if (matter_platform_8721d)
+list(
+    APPEND CHIP_CFLAGS
+
+    -DCONFIG_PLATFORM_8721D
+)
+elseif (matter_platform_8710c)
+list(
+    APPEND CHIP_CFLAGS
+
+    -DCONFIG_PLATFORM_8710C
+)
+endif()
 
 list(
     APPEND CHIP_CXXFLAGS
