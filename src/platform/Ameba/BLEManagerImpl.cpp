@@ -72,6 +72,7 @@ namespace {
 #define MAX_ADV_DATA_LEN 31
 #define CHIP_ADV_DATA_TYPE_FLAGS 0x01
 #define CHIP_ADV_DATA_FLAGS 0x06
+#define CHIP_ADV_DATA_LOCAL_NAME 0x09
 #define CHIP_ADV_DATA_TYPE_SERVICE_DATA 0x16
 
 #define LOOP_EV_BLE (0x08)
@@ -586,6 +587,7 @@ CHIP_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
     uint32_t bleAdvTimeoutMs;
     uint16_t adv_int_min;
     uint16_t adv_int_max;
+    uint8_t devicename[] = {0x41, 0x4D, 0x45, 0x42, 0x41, 0x5A, 0x32};
     T_GAP_DEV_STATE new_state;
 
     // If the device name is not specified, generate a CHIP-standard name based on the bottom digits of the Chip device id.
@@ -603,6 +605,11 @@ CHIP_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
 
     /**************** Prepare advertising data *******************************************/
     memset(advData, 0, sizeof(advData));
+
+    advData[index++] = 0x08;                                                                    // length
+    advData[index++] = CHIP_ADV_DATA_LOCAL_NAME;                                                // AD type flags
+    memcpy(&advData[index], &devicename, sizeof(devicename));                                   // AD value
+    index += sizeof(devicename);
     advData[index++] = 0x02;                                                                     // length
     advData[index++] = CHIP_ADV_DATA_TYPE_FLAGS;                                                 // AD type : flags
     advData[index++] = CHIP_ADV_DATA_FLAGS;                                                      // AD value
