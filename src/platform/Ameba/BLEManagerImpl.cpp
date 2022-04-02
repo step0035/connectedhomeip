@@ -559,7 +559,7 @@ bool BLEManagerImpl::SendIndication(BLE_CONNECTION_OBJECT conId, const ChipBleUU
     CHIP_ERROR err = CHIP_NO_ERROR;
 
     VerifyOrExit(IsSubscribed(conId), err = CHIP_ERROR_INVALID_ARGUMENT);
-    server_send_data(conId, bt_matter_adapter_service_id, BT_MATTER_ADAPTER_SERVICE_CHAR_NOTIFY_CCCD_INDEX - 1, data->Start(),
+    ble_matter_netmgr_server_send_data(conId, bt_matter_adapter_service_id, BT_MATTER_ADAPTER_SERVICE_CHAR_NOTIFY_CCCD_INDEX - 1, data->Start(),
                      data->DataLength(), GATT_PDU_TYPE_NOTIFICATION);
 
 exit:
@@ -654,9 +654,8 @@ CHIP_ERROR BLEManagerImpl::StartAdvertising(void)
     SuccessOrExit(err);
 
     // Start advertising
-    le_adv_stop();
-    vTaskDelay(100);
-    le_adv_start();
+    ble_matter_netmgr_stop_adv();
+    ble_matter_netmgr_start_adv();
 
     mFlags.Set(Flags::kAdvertising);
     mFlags.Clear(Flags::kRestartAdvertising);
@@ -678,7 +677,7 @@ CHIP_ERROR BLEManagerImpl::StopAdvertising(void)
     CHIP_ERROR err;
 
     // Stop advertising
-    le_adv_stop();
+    ble_matter_netmgr_stop_adv();
 
     // Change flag status to the 'not Advertising state'
     if (mFlags.Has(Flags::kAdvertising))
@@ -874,34 +873,29 @@ bool BLEManagerImpl::IsSubscribed(uint16_t conId)
     return false;
 }
 
-CHIP_ERROR BLEManagerImpl::ble_svr_gap_msg_event(void * param, T_IO_MSG * p_gap_msg)
+CHIP_ERROR BLEManagerImpl::ble_svr_gap_msg_conn_event(void * param, BT_MATTER_CONN_EVENT * p_gap_msg)
 {
-    T_LE_GAP_MSG gap_msg;
-    memcpy(&gap_msg, &p_gap_msg->u.param, sizeof(p_gap_msg->u.param));
+    BT_MATTER_CONN_EVENT conn_msg;
+    memcpy(&conn_msg, &p_gap_msg, sizeof(p_gap_msg));
     CHIP_ERROR err      = CHIP_NO_ERROR;
-    uint16_t conn_id    = gap_msg.msg_data.gap_conn_state_change.conn_id;
-    uint16_t new_state  = gap_msg.msg_data.gap_conn_state_change.new_state;
-    uint16_t disc_cause = gap_msg.msg_data.gap_conn_state_change.disc_cause;
+    uint16_t conn_id    = conn_msg.conn_id;
+    uint16_t new_state  = conn_msg.new_state;
+    uint16_t disc_cause = conn_msg.disc_cause;
 
-    switch (p_gap_msg->subtype)
+    switch (new_state)
     {
-    case GAP_MSG_LE_CONN_STATE_CHANGE:
-        /* A new connection was established or a connection attempt failed */
-        if (new_state == GAP_CONN_STATE_CONNECTED)
+    case GAP_CONN_STATE_CONNECTED:
         {
             err = sInstance.HandleGAPConnect(conn_id);
             SuccessOrExit(err);
         }
-        else if (new_state == GAP_CONN_STATE_DISCONNECTED)
+        break;
+    case GAP_CONN_STATE_DISCONNECTED:
         {
             err = sInstance.HandleGAPDisconnect(conn_id, disc_cause);
             SuccessOrExit(err);
         }
         break;
-
-    case GAP_MSG_LE_CONN_MTU_INFO: // BLE_GAP_EVENT_MTU:
-        break;
-
     default:
         break;
     }
@@ -941,7 +935,7 @@ CHIP_ERROR BLEManagerImpl::ble_svr_gap_event(void * param, int cb_type, void * p
     return err;
 }
 
-CHIP_ERROR BLEManagerImpl::gatt_svr_chr_access(void * param, T_SERVER_ID service_id, TBTCONFIG_CALLBACK_DATA * p_data)
+CHIP_ERROR BLEManagerImpl::gatt_svr_chr_access(void * param, T_SERVER_ID service_id, void * p_data)
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
     if (service_id == SERVICE_PROFILE_GENERAL_ID)
@@ -962,17 +956,18 @@ CHIP_ERROR BLEManagerImpl::gatt_svr_chr_access(void * param, T_SERVER_ID service
     }
     else
     {
-        uint8_t conn_id                  = p_data->conn_id;
-        T_SERVICE_CALLBACK_TYPE msg_type = p_data->msg_type;
-        uint8_t * p_value                = p_data->msg_data.write.p_value;
-        uint16_t len                     = p_data->msg_data.write.len;
+		TSIMP_CALLBACK_DATA * pp_param = (TSIMP_CALLBACK_DATA *) p_data;
+        uint8_t conn_id                  = pp_param->conn_id;
+        T_SERVICE_CALLBACK_TYPE msg_type = pp_param->msg_type;
+        uint8_t * p_value                = pp_param->msg_data.write.p_value;
+        uint16_t len                     = pp_param->msg_data.write.len;
         BLEManagerImpl * blemgr          = static_cast<BLEManagerImpl *>(param);
 
         switch (msg_type)
         {
         case SERVICE_CALLBACK_TYPE_READ_CHAR_VALUE:
 #if CHIP_ENABLE_ADDITIONAL_DATA_ADVERTISING
-            sInstance.HandleC3CharRead(p_data);
+            sInstance.HandleC3CharRead(pp_param);
 #endif
             break;
 
@@ -981,9 +976,7 @@ CHIP_ERROR BLEManagerImpl::gatt_svr_chr_access(void * param, T_SERVER_ID service
             break;
 
         case SERVICE_CALLBACK_TYPE_INDIFICATION_NOTIFICATION: {
-            TSIMP_CALLBACK_DATA * pp_data;
-            pp_data = (TSIMP_CALLBACK_DATA *) p_data;
-            switch (pp_data->msg_data.notification_indification_index)
+            switch (pp_param->msg_data.notification_indification_index)
             {
             case SIMP_NOTIFY_INDICATE_V3_ENABLE: {
                 sInstance.HandleTXCharCCCDWrite(conn_id, 0, 1);
@@ -1030,7 +1023,7 @@ void BLEManagerImpl::HandleRXCharWrite(uint8_t * p_value, uint16_t len, uint8_t 
 }
 
 #if CHIP_ENABLE_ADDITIONAL_DATA_ADVERTISING
-void BLEManagerImpl::HandleC3CharRead(TBTCONFIG_CALLBACK_DATA * p_data)
+void BLEManagerImpl::HandleC3CharRead(TSIMP_CALLBACK_DATA * p_data)
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
     PacketBufferHandle bufferHandle;
@@ -1064,16 +1057,22 @@ exit:
 int BLEManagerImpl::ble_callback_dispatcher(void * param, void * p_cb_data, int type, T_CHIP_BLEMGR_CALLBACK_TYPE callback_type)
 {
     BLEManagerImpl * blemgr = static_cast<BLEManagerImpl *>(param);
+
     switch (callback_type)
     {
     case CB_PROFILE_CALLBACK:
-        blemgr->gatt_svr_chr_access(param, type, (TBTCONFIG_CALLBACK_DATA *) p_cb_data);
+        if (type == SERVICE_PROFILE_GENERAL_ID)
+        {
+            blemgr->gatt_svr_chr_access(param, type, (T_SERVER_APP_CB_DATA *) p_cb_data);
+        }
+        else
+            blemgr->gatt_svr_chr_access(param, type, (TSIMP_CALLBACK_DATA *) p_cb_data);
         break;
     case CB_GAP_CALLBACK:
         blemgr->ble_svr_gap_event(param, type, p_cb_data);
         break;
-    case CB_GAP_MSG_CALLBACK:
-        blemgr->ble_svr_gap_msg_event(param, (T_IO_MSG *) p_cb_data);
+    case CB_GAP_MSG_CONN_EVENT:
+        blemgr->ble_svr_gap_msg_conn_event(param, (BT_MATTER_CONN_EVENT *) p_cb_data);
         break;
     default:
         break;
