@@ -25,27 +25,23 @@
 
 #include "LEDWidget.h"
 
-gpio_t gpio_led;
+pwmout_t pwm_obj;
 
-void LEDWidget::Init(PinName gpioNum)
+void LEDWidget::Init(PinName pin)
 {
-
-    mGPIONum = gpioNum;
-    mState   = false;
-
-    if (gpioNum != (PinName) NC)
-    {
-        // Init LED control pin
-        gpio_init(&gpio_led, gpioNum);
-        gpio_dir(&gpio_led, PIN_OUTPUT); // Direction: Output
-        gpio_mode(&gpio_led, PullNone);  // No pull
-        gpio_write(&gpio_led, mState);
-    }
+    pwmout_init(&pwm_obj, pin);
+    pwmout_period_us(&pwm_obj, 20000);
 }
 
 void LEDWidget::Set(bool state)
 {
     DoSet(state);
+}
+
+void LEDWidget::SetBrightness(uint8_t value)
+{
+    float duty_cycle = (float) (value) / 254;
+    pwmout_write(&pwm_obj, duty_cycle);
 }
 
 void LEDWidget::DoSet(bool state)
@@ -55,6 +51,6 @@ void LEDWidget::DoSet(bool state)
 
     if (stateChange)
     {
-        gpio_write(&gpio_led, state);
+        pwmout_write(&pwm_obj, (float) state);
     }
 }

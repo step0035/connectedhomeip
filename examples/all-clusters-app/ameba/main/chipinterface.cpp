@@ -82,7 +82,7 @@ Identify gIdentify1 = {
 #ifdef CONFIG_PLATFORM_8721D
 #define STATUS_LED_GPIO_NUM PB_5
 #elif defined(CONFIG_PLATFORM_8710C)
-#define STATUS_LED_GPIO_NUM PA_20
+#define STATUS_LED_GPIO_NUM PA_17
 #else
 #define STATUS_LED_GPIO_NUM NC
 #endif
@@ -161,6 +161,8 @@ extern "C" void ChipTest(void)
     ChipLogProgress(DeviceLayer, "All Clusters Demo!");
     CHIP_ERROR err = CHIP_NO_ERROR;
 
+    statusLED1.Init(STATUS_LED_GPIO_NUM);
+
 #if CONFIG_ENABLE_PW_RPC
     chip::rpc::Init();
 #endif
@@ -180,8 +182,6 @@ extern "C" void ChipTest(void)
     }
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(InitServer, 0);
-
-    statusLED1.Init(STATUS_LED_GPIO_NUM);
 }
 
 bool lowPowerClusterSleep()

@@ -41,5 +41,9 @@ private:
     void OnInternetConnectivityChange(const chip::DeviceLayer::ChipDeviceEvent * event);
     void OnSessionEstablished(const chip::DeviceLayer::ChipDeviceEvent * event);
     void OnOnOffPostAttributeChangeCallback(chip::EndpointId endpointId, chip::AttributeId attributeId, uint8_t * value);
+    void OnLevelControlAttributeChangeCallback(chip::EndpointId endpointId, chip::AttributeId attributeId, uint8_t * value);
+    void OnColorControlAttributeChangeCallback(chip::EndpointId endpointId, chip::AttributeId attributeId, uint8_t * value);
     void OnIdentifyPostAttributeChangeCallback(chip::EndpointId endpointId, chip::AttributeId attributeId, uint8_t * value);
+    // Currently we only implement one LED
+    bool mEndpointOnOffState[1];
 };

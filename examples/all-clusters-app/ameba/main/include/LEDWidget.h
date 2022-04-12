@@ -21,8 +21,9 @@
 #include <platform_stdlib.h>
 
 #ifdef CONFIG_PLATFORM_8710C
-#include "gpio_api.h"
-#include "rtl8710c_pin_name.h"
+//#include "gpio_api.h"
+//#include "rtl8710c_pin_name.h"
+#include "pwmout_api.h"
 
 #else
 
@@ -136,6 +137,7 @@ typedef struct gpio_s
 
 #endif
 
+#if 0
 typedef struct gpio_s gpio_t;
 
 extern "C" void gpio_init(gpio_t * obj, PinName pin);
@@ -144,15 +146,18 @@ extern "C" void gpio_mode(gpio_t * obj, PinMode mode);
 extern "C" void gpio_dir(gpio_t * obj, PinDirection direction);
 extern "C" void gpio_write(gpio_t * obj, int value);
 extern "C" int gpio_read(gpio_t * obj);
+#endif
+
+
 
 class LEDWidget
 {
 public:
-    void Init(PinName gpioNum);
+    void Init(PinName pin);
     void Set(bool state);
+    void SetBrightness(uint8_t value);
 
 private:
-    PinName mGPIONum;
     bool mState;
     void DoSet(bool state);
 };

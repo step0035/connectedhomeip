@@ -40,9 +40,8 @@
 #include "Globals.h"
 #include "LEDWidget.h"
 
-static const char * TAG = "app-devicecallbacks";
-
 using namespace ::chip;
+using namespace ::chip::app;
 using namespace ::chip::Inet;
 using namespace ::chip::System;
 using namespace ::chip::DeviceLayer;
@@ -84,6 +83,14 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
     {
     case ZCL_ON_OFF_CLUSTER_ID:
         OnOnOffPostAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
+    case Clusters::LevelControl::Id:
+        OnLevelControlAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
+    case Clusters::ColorControl::Id:
+        OnColorControlAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
     case ZCL_IDENTIFY_CLUSTER_ID:
@@ -128,13 +135,63 @@ void DeviceCallbacks::OnSessionEstablished(const ChipDeviceEvent * event)
 void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
     VerifyOrExit(attributeId == ZCL_ON_OFF_ATTRIBUTE_ID,
-                 ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
-    VerifyOrExit(endpointId == 1 || endpointId == 2,
-                 ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+                 ChipLogError(DeviceLayer, "Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1,
+                 ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
 
     // At this point we can assume that value points to a bool value.
+    mEndpointOnOffState[endpointId - 1] = *value;
     statusLED1.Set(*value);
 
+exit:
+    return;
+}
+
+void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    bool onOffState    = mEndpointOnOffState[endpointId - 1];
+    uint8_t brightness = onOffState ? *value : 0;
+
+    VerifyOrExit(attributeId == ZCL_CURRENT_LEVEL_ATTRIBUTE_ID,
+            ChipLogError(DeviceLayer, "Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1,
+            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+
+    // At this point we can assume that value points to a bool value.
+    printf("\r\n\r\n calling SetBrightness with value: %d\r\n\r\n", brightness);
+    statusLED1.SetBrightness(brightness);
+
+exit:
+    return;
+}
+
+void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    VerifyOrExit(attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
+                     attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
+                 ChipLogError(DeviceLayer, "Unhandled AttributeId ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1,
+            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+
+#if 0
+    if (endpointId == 1)
+    {
+        uint8_t hue, saturation;
+        if (attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID)
+        {
+            hue = *value;
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
+                                       &saturation, sizeof(uint8_t));
+        }
+        else
+        {
+            saturation = *value;
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
+                                       sizeof(uint8_t));
+        }
+        statusLED1.SetColor(hue, saturation);
+    }
+#endif
 exit:
     return;
 }
@@ -150,8 +207,9 @@ void IdentifyTimerHandler(Layer * systemLayer, void * appState, CHIP_ERROR error
 void DeviceCallbacks::OnIdentifyPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
     VerifyOrExit(attributeId == ZCL_IDENTIFY_TIME_ATTRIBUTE_ID,
-                 ChipLogError(DeviceLayer, "[%s] Unhandled Attribute ID: '0x%04x", TAG, attributeId));
-    VerifyOrExit(endpointId == 1, ChipLogError(DeviceLayer, "[%s] Unexpected EndPoint ID: `0x%02x'", TAG, endpointId));
+                 ChipLogError(DeviceLayer, "[%s] Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1,
+            ChipLogError(DeviceLayer, "[%s] Unexpected EndPoint ID: `0x%02x'", endpointId));
 
     // timerCount represents the number of callback executions before we stop the timer.
     // value is expressed in seconds and the timer is fired every 250ms, so just multiply value by 4.
