@@ -79,6 +79,7 @@ void DeviceCallbacks::DeviceEventCallback(const ChipDeviceEvent * event, intptr_
 void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, ClusterId clusterId, AttributeId attributeId, uint8_t mask,
                                                   uint8_t type, uint16_t size, uint8_t * value)
 {
+    printf("\r\nSomething Changed\r\n");
     switch (clusterId)
     {
     case ZCL_ON_OFF_CLUSTER_ID:
@@ -141,6 +142,7 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
 
     // At this point we can assume that value points to a bool value.
     mEndpointOnOffState[endpointId - 1] = *value;
+    printf("\r\n\r\n calling Set with value: %d\r\n\r\n", *value);
     statusLED1.Set(*value);
 
 exit:
@@ -173,7 +175,6 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
     VerifyOrExit(endpointId == 1,
             ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
 
-#if 0
     if (endpointId == 1)
     {
         uint8_t hue, saturation;
@@ -189,9 +190,9 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
             emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
                                        sizeof(uint8_t));
         }
+        printf("\r\n\r\n calling SetColor with hue:%d, saturation:%d \r\n\r\n", hue, saturation);
         statusLED1.SetColor(hue, saturation);
     }
-#endif
 exit:
     return;
 }

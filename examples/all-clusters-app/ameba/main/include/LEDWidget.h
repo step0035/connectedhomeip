@@ -155,7 +155,12 @@ class LEDWidget
 public:
     void Init(PinName pin);
     void Set(bool state);
-    void SetBrightness(uint8_t value);
+    void SetBrightness(uint8_t brightness);
+    void SetColor(uint8_t Hue, uint8_t Saturation);
+    void HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue);
+    uint8_t mDefaultOnBrightness;
+    uint16_t mHue;       // mHue [0, 360]
+    uint8_t mSaturation; // mSaturation [0, 100]
 
 private:
     bool mState;
