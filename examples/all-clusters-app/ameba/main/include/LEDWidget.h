@@ -153,7 +153,10 @@ extern "C" int gpio_read(gpio_t * obj);
 class LEDWidget
 {
 public:
+    //void Init(PinName pin);
     void Init(PinName pin);
+    void Init(PinName redpin, PinName greenpin, PinName bluepin);
+    void deInit(void);
     void Set(bool state);
     void SetBrightness(uint8_t brightness);
     void SetColor(uint8_t Hue, uint8_t Saturation);
@@ -163,6 +166,11 @@ public:
     uint8_t mSaturation; // mSaturation [0, 100]
 
 private:
+    pwmout_t *mPwm_obj = NULL;
+    pwmout_t *mPwm_red = NULL;
+    pwmout_t *mPwm_green = NULL;
+    pwmout_t *mPwm_blue = NULL;
+    bool mRgb = false;
     bool mState;
     void DoSet(bool state);
 };

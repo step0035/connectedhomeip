@@ -25,11 +25,16 @@
 
 #include "LEDWidget.h"
 
+#if 0
 pwmout_t pwm_obj;
 pwmout_t pwm_red;
 pwmout_t pwm_green;
 pwmout_t pwm_blue;
+#endif
 
+//pwmout_t pwm_obj;
+
+#if 0
 void LEDWidget::Init(PinName pin)
 {
     pwmout_init(&pwm_obj, pin);
@@ -44,6 +49,51 @@ void LEDWidget::Init(PinName pin)
     mHue                            = 0;
     mSaturation                     = 0;
 }
+#endif
+
+void LEDWidget::Init(PinName pin)
+{
+    mPwm_obj                        = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+
+    pwmout_init(mPwm_obj, pin);
+    //pwmout_period_us(mPwm_obj, 20000);
+
+    mRgb                            = false;
+    mState                          = false;
+    mDefaultOnBrightness            = UINT8_MAX;
+    mHue                            = 0;
+    mSaturation                     = 0;
+}
+
+void LEDWidget::Init(PinName redpin, PinName greenpin, PinName bluepin)
+{
+    mPwm_red                        = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_green                      = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_blue                       = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    pwmout_init(mPwm_red, redpin);
+    pwmout_init(mPwm_green, bluepin);
+    pwmout_init(mPwm_blue, greenpin);
+
+    mRgb                            = true;
+    mState                          = false;
+    mDefaultOnBrightness            = UINT8_MAX;
+    mHue                            = 0;
+    mSaturation                     = 0;
+}
+
+void LEDWidget::deInit(void)
+{
+    if (mRgb)
+    {
+        vPortFree(mPwm_red);
+        vPortFree(mPwm_green);
+        vPortFree(mPwm_blue);
+    }
+    else
+    {
+        vPortFree(mPwm_obj);
+    }
+}
 
 void LEDWidget::Set(bool state)
 {
@@ -52,12 +102,20 @@ void LEDWidget::Set(bool state)
 
 void LEDWidget::SetBrightness(uint8_t brightness)
 {
-    float duty_cycle = (float) (brightness) / 254;
-    pwmout_write(&pwm_obj, duty_cycle);
-
-    if (brightness > 0 && brightness < 255)
+    if (!mRgb)
     {
-        mDefaultOnBrightness = brightness;
+        float duty_cycle = (float) (brightness) / 254;
+        //pwmout_write(&pwm_obj, duty_cycle);
+        pwmout_write(mPwm_obj, duty_cycle);
+
+        if (brightness > 0 && brightness < 255)
+        {
+            mDefaultOnBrightness = brightness;
+        }
+    }
+    else
+    {
+
     }
 }
 
@@ -84,9 +142,11 @@ void LEDWidget::SetColor(uint8_t Hue, uint8_t Saturation)
     printf("\r\nred: %d, duty_red: %f\r\n", red, duty_red);
     printf("\r\ngreen: %d, duty_blue: %f\r\n", green, duty_green);
     printf("\r\nblue: %d, duty_blue: %f\r\n", blue, duty_blue);
+#if 0
     pwmout_write(&pwm_red, duty_red);
     pwmout_write(&pwm_blue, duty_blue);
     pwmout_write(&pwm_green, duty_green);
+#endif
 }
 
 void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue)

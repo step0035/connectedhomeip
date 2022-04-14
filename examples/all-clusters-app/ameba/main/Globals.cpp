@@ -19,3 +19,4 @@
 #include "Globals.h"
 
 LEDWidget statusLED1;
+LEDWidget rgbLED;
