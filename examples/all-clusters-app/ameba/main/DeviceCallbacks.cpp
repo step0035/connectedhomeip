@@ -79,7 +79,6 @@ void DeviceCallbacks::DeviceEventCallback(const ChipDeviceEvent * event, intptr_
 void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, ClusterId clusterId, AttributeId attributeId, uint8_t mask,
                                                   uint8_t type, uint16_t size, uint8_t * value)
 {
-    printf("\r\nSomething Changed\r\n");
     switch (clusterId)
     {
     case ZCL_ON_OFF_CLUSTER_ID:
@@ -143,7 +142,7 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
     // At this point we can assume that value points to a bool value.
     mEndpointOnOffState[endpointId - 1] = *value;
     printf("\r\n\r\n calling Set with value: %d\r\n\r\n", *value);
-    statusLED1.Set(*value);
+    rgbLED.Set(*value);
 
 exit:
     return;
@@ -161,7 +160,7 @@ void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointI
 
     // At this point we can assume that value points to a bool value.
     printf("\r\n\r\n calling SetBrightness with value: %d\r\n\r\n", brightness);
-    statusLED1.SetBrightness(brightness);
+    rgbLED.SetBrightness(brightness);
 
 exit:
     return;
@@ -169,29 +168,45 @@ exit:
 
 void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
-    VerifyOrExit(attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
-                     attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
-                 ChipLogError(DeviceLayer, "Unhandled AttributeId ID: '0x%04x", attributeId));
-    VerifyOrExit(endpointId == 1,
-            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+    VerifyOrExit(
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID,
+            ChipLogError(DeviceLayer, "Unhandled AttributeId ID: '0x%04x", attributeId)
+            );
+    VerifyOrExit(
+            endpointId == 1,
+            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId)
+            );
 
-    if (endpointId == 1)
+    if (attributeId  == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID || attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID)
     {
-        uint8_t hue, saturation;
-        if (attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID)
+        if (endpointId == 1)
         {
-            hue = *value;
-            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
-                                       &saturation, sizeof(uint8_t));
+            uint8_t hue, saturation;
+            if (attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID)
+            {
+                hue = *value;
+                emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
+                                           &saturation, sizeof(uint8_t));
+            }
+            else
+            {
+                saturation = *value;
+                emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
+                                           sizeof(uint8_t));
+            }
+            printf("\r\n\r\n calling SetColor with hue:%d, saturation:%d \r\n\r\n", hue, saturation);
+            rgbLED.SetColor(hue, saturation);
         }
-        else
+    }
+
+    if (attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
         {
-            saturation = *value;
-            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
-                                       sizeof(uint8_t));
+            printf("\r\ncolor temp changed\r\n");
         }
-        printf("\r\n\r\n calling SetColor with hue:%d, saturation:%d \r\n\r\n", hue, saturation);
-        statusLED1.SetColor(hue, saturation);
     }
 exit:
     return;

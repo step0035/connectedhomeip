@@ -102,20 +102,38 @@ void LEDWidget::Set(bool state)
 
 void LEDWidget::SetBrightness(uint8_t brightness)
 {
+    printf("\r\n\r\nSetBrightness brightness: %d\r\n\r\n", brightness);
     if (!mRgb)
     {
-        float duty_cycle = (float) (brightness) / 254;
-        //pwmout_write(&pwm_obj, duty_cycle);
-        pwmout_write(mPwm_obj, duty_cycle);
-
         if (brightness > 0 && brightness < 255)
         {
             mDefaultOnBrightness = brightness;
         }
+
+        float duty_cycle = (float) (brightness) / 254;
+        pwmout_write(mPwm_obj, duty_cycle);
     }
     else
     {
+        if (brightness > 0 && brightness < 255)
+        {
+            mDefaultOnBrightness = brightness;
+        }
 
+        uint8_t red, green, blue;
+        float duty_red, duty_green, duty_blue;
+        uint8_t brightness = mState ? mDefaultOnBrightness : 0;
+
+        HSB2rgb(mHue, mSaturation, brightness, red, green, blue);
+
+        duty_red = static_cast<float>(red) / 255.0;
+        duty_green = static_cast<float>(green) / 255.0;
+        duty_blue = static_cast<float>(blue) / 255.0;
+
+        pwmout_write(mPwm_red, duty_red);
+        pwmout_write(mPwm_blue, duty_blue);
+        pwmout_write(mPwm_green, duty_green);
+    
     }
 }
 
@@ -136,21 +154,27 @@ void LEDWidget::SetColor(uint8_t Hue, uint8_t Saturation)
     mSaturation        = static_cast<uint16_t>(Saturation) * 100 / 254; // mSaturation [0 , 100]
 
     HSB2rgb(mHue, mSaturation, brightness, red, green, blue);
-    duty_red = static_cast<float> (red) / 255;
-    duty_green = static_cast<float> (green) / 255;
-    duty_blue = static_cast<float> (blue) / 255;
-    printf("\r\nred: %d, duty_red: %f\r\n", red, duty_red);
-    printf("\r\ngreen: %d, duty_blue: %f\r\n", green, duty_green);
-    printf("\r\nblue: %d, duty_blue: %f\r\n", blue, duty_blue);
-#if 0
-    pwmout_write(&pwm_red, duty_red);
-    pwmout_write(&pwm_blue, duty_blue);
-    pwmout_write(&pwm_green, duty_green);
+
+    duty_red = static_cast<float>(red) / 255.0;
+    duty_green = static_cast<float>(green) / 255.0;
+    duty_blue = static_cast<float>(blue) / 255.0;
+
+    printf("\r\nbrightness: %d", brightness);
+    printf("\r\nred: %d, red_duty: %f", red, duty_red);
+    printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
+    printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
+#if 1
+    pwmout_write(mPwm_red, duty_red);
+    pwmout_write(mPwm_blue, duty_blue);
+    pwmout_write(mPwm_green, duty_green);
 #endif
 }
 
 void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
+    printf("\r\nHue: %d", Hue);
+    printf("\r\nSaturation: %d", Saturation);
+    printf("\r\nbrightness: %d", brightness);
     uint16_t i       = Hue / 60;
     uint16_t rgb_max = brightness;
     uint16_t rgb_min = rgb_max * (100 - Saturation) / 100;
@@ -190,4 +214,7 @@ void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, ui
         blue  = rgb_max - rgb_adj;
         break;
     }
+    printf("\r\nred: %d", red);
+    printf("\r\ngreen: %d", green);
+    printf("\r\nblue: %d", blue);
 }
