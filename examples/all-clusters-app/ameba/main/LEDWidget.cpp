@@ -24,6 +24,7 @@
  */
 
 #include "LEDWidget.h"
+#include <algorithm>
 
 #if 0
 pwmout_t pwm_obj;
@@ -75,6 +76,28 @@ void LEDWidget::Init(PinName redpin, PinName greenpin, PinName bluepin)
     pwmout_init(mPwm_blue, greenpin);
 
     mRgb                            = true;
+    mRgbw                           = false;
+    mState                          = false;
+    mDefaultOnBrightness            = UINT8_MAX;
+    mHue                            = 0;
+    mSaturation                     = 0;
+}
+
+void LEDWidget::Init(PinName redpin, PinName greenpin, PinName bluepin, PinName cwhitepin, PinName wwhitepin)
+{
+    mPwm_red                        = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_green                      = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_blue                       = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_cwhite                     = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    mPwm_wwhite                     = (pwmout_t*) pvPortMalloc(sizeof(pwmout_t));
+    pwmout_init(mPwm_red, redpin);
+    pwmout_init(mPwm_green, bluepin);
+    pwmout_init(mPwm_blue, greenpin);
+    pwmout_init(mPwm_cwhite, cwhitepin);
+    pwmout_init(mPwm_wwhite, wwhitepin);
+
+    mRgb                            = true;
+    mRgbw                           = true;
     mState                          = false;
     mDefaultOnBrightness            = UINT8_MAX;
     mHue                            = 0;
@@ -88,6 +111,11 @@ void LEDWidget::deInit(void)
         vPortFree(mPwm_red);
         vPortFree(mPwm_green);
         vPortFree(mPwm_blue);
+    }
+    if (mRgbw)
+    {
+        vPortFree(mPwm_cwhite);
+        vPortFree(mPwm_wwhite);
     }
     else
     {
@@ -120,15 +148,35 @@ void LEDWidget::SetBrightness(uint8_t brightness)
             mDefaultOnBrightness = brightness;
         }
 
-        uint8_t red, green, blue;
-        float duty_red, duty_green, duty_blue;
+        uint8_t red, green, blue, coolwhite, warmwhite;
+        float duty_red, duty_green, duty_blue, duty_cwhite, duty_wwhite;
         uint8_t brightness = mState ? mDefaultOnBrightness : 0;
 
         HSB2rgb(mHue, mSaturation, brightness, red, green, blue);
 
-        duty_red = static_cast<float>(red) / 255.0;
-        duty_green = static_cast<float>(green) / 255.0;
-        duty_blue = static_cast<float>(blue) / 255.0;
+        if (mRgbw)
+        {
+            simpleRGB2RGBW(red, green, blue, coolwhite, warmwhite);
+            duty_cwhite = static_cast<float> (coolwhite) / 254.0;
+            duty_wwhite = static_cast<float> (warmwhite) / 254.0;
+        }
+
+        duty_red = static_cast<float>(red) / 254.0;
+        duty_green = static_cast<float>(green) / 254.0;
+        duty_blue = static_cast<float>(blue) / 254.0;
+
+        printf("\r\nbrightness: %d", brightness);
+        printf("\r\nred: %d, red_duty: %f", red, duty_red);
+        printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
+        printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
+
+        if (mRgbw)
+        {
+            printf("\r\ncwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
+            printf("\r\nwwhite: %d, wwhite_duty: %f", warmwhite, duty_wwhite);
+            pwmout_write(mPwm_cwhite, duty_cwhite);
+            pwmout_write(mPwm_wwhite, duty_wwhite);
+        }
 
         pwmout_write(mPwm_red, duty_red);
         pwmout_write(mPwm_blue, duty_blue);
@@ -142,39 +190,66 @@ void LEDWidget::DoSet(bool state)
     bool stateChange = (mState != state);
     mState           = state;
 
-    // No need to configure lighting here, will be don in SetBrightness
+    // No need to configure lighting here, will be done in SetBrightness
 }
 
 void LEDWidget::SetColor(uint8_t Hue, uint8_t Saturation)
 {
-    uint8_t red, green, blue;
-    float duty_red, duty_green, duty_blue;
-    uint8_t brightness = mState ? mDefaultOnBrightness : 0;
-    mHue               = static_cast<uint16_t>(Hue) * 360 / 254;        // mHue [0, 360]
-    mSaturation        = static_cast<uint16_t>(Saturation) * 100 / 254; // mSaturation [0 , 100]
+    if (mRgb)
+    {
+        uint8_t red, green, blue, coolwhite, warmwhite;
+        float duty_red, duty_green, duty_blue, duty_cwhite, duty_wwhite;
+        uint8_t brightness = mState ? mDefaultOnBrightness : 0;
+        mHue               = static_cast<uint16_t>(Hue) * 360 / 254;        // mHue [0, 360]
+        mSaturation        = static_cast<uint16_t>(Saturation) * 100 / 254; // mSaturation [0 , 100]
 
-    HSB2rgb(mHue, mSaturation, brightness, red, green, blue);
+        HSB2rgb(mHue, mSaturation, brightness, red, green, blue);
 
-    duty_red = static_cast<float>(red) / 255.0;
-    duty_green = static_cast<float>(green) / 255.0;
-    duty_blue = static_cast<float>(blue) / 255.0;
+        if (mRgbw)
+        {
+            simpleRGB2RGBW(red, green, blue, coolwhite, warmwhite);
+            duty_cwhite = static_cast<float> (coolwhite) / 254.0;
+            duty_wwhite = static_cast<float> (warmwhite) / 254.0;
+        }
 
-    printf("\r\nbrightness: %d", brightness);
-    printf("\r\nred: %d, red_duty: %f", red, duty_red);
-    printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
-    printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
-#if 1
-    pwmout_write(mPwm_red, duty_red);
-    pwmout_write(mPwm_blue, duty_blue);
-    pwmout_write(mPwm_green, duty_green);
+        duty_red = static_cast<float>(red) / 254.0;
+        duty_green = static_cast<float>(green) / 254.0;
+        duty_blue = static_cast<float>(blue) / 254.0;
+
+        printf("\r\nbrightness: %d", brightness);
+        printf("\r\nred: %d, red_duty: %f", red, duty_red);
+        printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
+        printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
+
+        if (mRgbw)
+        {
+            printf("\r\ncwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
+            printf("\r\nwwhite: %d, wwhite_duty: %f\r\n", warmwhite, duty_wwhite);
+            pwmout_write(mPwm_cwhite, duty_cwhite);
+            pwmout_write(mPwm_wwhite, duty_wwhite);
+        }
+
+        pwmout_write(mPwm_red, duty_red);
+        pwmout_write(mPwm_blue, duty_blue);
+        pwmout_write(mPwm_green, duty_green);
+    }
+}
+
+void LEDWidget::SetColorTemp(uint16_t colortemp)
+{
+#if 0
+    if (colortemp!=0)
+        mColorTemp = static_cast<uint16_t>(1000000 / colortemp);
+    else
+        mColorTemp = 0;
 #endif
+    mColorTemp = colortemp;
+    printf("\r\nmColorTemp: %d\r\n", mColorTemp);
+    SetBrightness(mDefaultOnBrightness);
 }
 
 void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
-    printf("\r\nHue: %d", Hue);
-    printf("\r\nSaturation: %d", Saturation);
-    printf("\r\nbrightness: %d", brightness);
     uint16_t i       = Hue / 60;
     uint16_t rgb_max = brightness;
     uint16_t rgb_min = rgb_max * (100 - Saturation) / 100;
@@ -214,7 +289,38 @@ void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, ui
         blue  = rgb_max - rgb_adj;
         break;
     }
-    printf("\r\nred: %d", red);
-    printf("\r\ngreen: %d", green);
-    printf("\r\nblue: %d", blue);
+    printf("\r\nred: %d, green: %d, blue: %d", red, green, blue);
+}
+
+void LEDWidget:: simpleRGB2RGBW(uint8_t & red, uint8_t & green, uint8_t & blue, uint8_t & cwhite, uint8_t & wwhite)
+{
+    uint8_t white = std::min({red, green, blue});    
+    printf("\r\nDebug white = %d\r\n", white);
+
+    // Original color channel minus the contribution of white channel
+    red -= white;
+    green -= white;
+    blue -= white;
+
+    uint16_t colortemp;
+    uint8_t i = 0;
+
+    while(i < 11)
+    {
+        colortemp = WhitePercentage[i][0];
+        if (mColorTemp < colortemp)
+            break;
+        i++;
+    }
+
+    if (i == 11)
+    {
+        cwhite = white * WhitePercentage[10][1] / 100;
+        wwhite = white * WhitePercentage[10][2] / 100;
+    }
+    else
+    {
+        cwhite = white * WhitePercentage[i][1] / 100;
+        wwhite = white * WhitePercentage[i][2] / 100;
+    }
 }

@@ -142,7 +142,7 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
     // At this point we can assume that value points to a bool value.
     mEndpointOnOffState[endpointId - 1] = *value;
     printf("\r\n\r\n calling Set with value: %d\r\n\r\n", *value);
-    rgbLED.Set(*value);
+    rgbwLED.Set(*value);
 
 exit:
     return;
@@ -160,7 +160,7 @@ void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointI
 
     // At this point we can assume that value points to a bool value.
     printf("\r\n\r\n calling SetBrightness with value: %d\r\n\r\n", brightness);
-    rgbLED.SetBrightness(brightness);
+    rgbwLED.SetBrightness(brightness);
 
 exit:
     return;
@@ -197,7 +197,7 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
                                            sizeof(uint8_t));
             }
             printf("\r\n\r\n calling SetColor with hue:%d, saturation:%d \r\n\r\n", hue, saturation);
-            rgbLED.SetColor(hue, saturation);
+            rgbwLED.SetColor(hue, saturation);
         }
     }
 
@@ -206,6 +206,8 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
         if (endpointId == 1)
         {
             printf("\r\ncolor temp changed\r\n");
+            uint16_t colortemp = *value;
+            rgbwLED.SetColorTemp(colortemp);
         }
     }
 exit:

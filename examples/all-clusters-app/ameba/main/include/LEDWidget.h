@@ -148,29 +148,50 @@ extern "C" void gpio_write(gpio_t * obj, int value);
 extern "C" int gpio_read(gpio_t * obj);
 #endif
 
-
-
 class LEDWidget
 {
 public:
     //void Init(PinName pin);
     void Init(PinName pin);
     void Init(PinName redpin, PinName greenpin, PinName bluepin);
+    void Init(PinName redpin, PinName greenpin, PinName bluepin, PinName cwhitepin, PinName wwhitepin);
     void deInit(void);
     void Set(bool state);
     void SetBrightness(uint8_t brightness);
     void SetColor(uint8_t Hue, uint8_t Saturation);
+    void SetColorTemp(uint16_t colortemp);
     void HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, uint8_t & red, uint8_t & green, uint8_t & blue);
+    void simpleRGB2RGBW(uint8_t & red, uint8_t & green, uint8_t & blue, uint8_t & cwhite, uint8_t & wwhite);
     uint8_t mDefaultOnBrightness;
     uint16_t mHue;       // mHue [0, 360]
     uint8_t mSaturation; // mSaturation [0, 100]
+    uint16_t mColorTemp;
 
 private:
     pwmout_t *mPwm_obj = NULL;
     pwmout_t *mPwm_red = NULL;
     pwmout_t *mPwm_green = NULL;
     pwmout_t *mPwm_blue = NULL;
+    pwmout_t *mPwm_cwhite = NULL;
+    pwmout_t *mPwm_wwhite = NULL;
     bool mRgb = false;
+    bool mRgbw = false;
     bool mState;
     void DoSet(bool state);
+    uint16_t WhitePercentage[11][3] = 
+    {
+        /*CT--coolwhite%--warmwhite%*/
+        {2708, 0, 100},
+        {2891, 10, 90},
+        {3110, 20, 80},
+        {3364, 30, 70},
+        {3656, 40, 60},
+        {3992, 50, 50},
+        {4376, 60, 40},
+        {4809, 70, 30},
+        {5304, 80, 20},
+        {5853, 90, 10},
+        {6471, 100, 0}
+    };
+
 };

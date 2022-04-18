@@ -20,3 +20,4 @@
 
 LEDWidget statusLED1;
 LEDWidget rgbLED;
+LEDWidget rgbwLED;

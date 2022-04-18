@@ -22,3 +22,4 @@
 
 extern LEDWidget statusLED1;
 extern LEDWidget rgbLED;
+extern LEDWidget rgbwLED;

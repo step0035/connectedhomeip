@@ -82,15 +82,19 @@ Identify gIdentify1 = {
 #ifdef CONFIG_PLATFORM_8721D
 #define STATUS_LED_GPIO_NUM PB_5
 #elif defined(CONFIG_PLATFORM_8710C)
-#define STATUS_LED_GPIO_NUM PA_17
-#define RED_LED_GPIO_NUM    PA_18
-#define GREEN_LED_GPIO_NUM    PA_19
-#define BLUE_LED_GPIO_NUM    PA_20
+#define STATUS_LED_GPIO_NUM         PA_17
+#define RED_LED_GPIO_NUM            PA_18
+#define GREEN_LED_GPIO_NUM          PA_19
+#define BLUE_LED_GPIO_NUM           PA_20
+#define COOL_WHITE_LED_GPIO_NUM     PA_4
+#define WARM_WHITE_LED_GPIO_NUM     PA_17
 #else
-#define STATUS_LED_GPIO_NUM NC
-#define RED_LED_GPIO_NUM   NC 
-#define GREEN_LED_GPIO_NUM NC 
-#define BLUE_LED_GPIO_NUM  NC 
+#define STATUS_LED_GPIO_NUM         NC
+#define RED_LED_GPIO_NUM            NC 
+#define GREEN_LED_GPIO_NUM          NC 
+#define BLUE_LED_GPIO_NUM           NC 
+#define COOL_WHITE_LED_GPIO_NUM     NC
+#define WARM_WHITE_LED_GPIO_NUM     NC
 #endif
 
 static DeviceCallbacks EchoCallbacks;
@@ -168,7 +172,8 @@ extern "C" void ChipTest(void)
     CHIP_ERROR err = CHIP_NO_ERROR;
 
     //statusLED1.Init(STATUS_LED_GPIO_NUM);
-    rgbLED.Init(RED_LED_GPIO_NUM, GREEN_LED_GPIO_NUM, BLUE_LED_GPIO_NUM);
+    //rgbLED.Init(RED_LED_GPIO_NUM, GREEN_LED_GPIO_NUM, BLUE_LED_GPIO_NUM);
+    rgbwLED.Init(RED_LED_GPIO_NUM, GREEN_LED_GPIO_NUM, BLUE_LED_GPIO_NUM, COOL_WHITE_LED_GPIO_NUM, WARM_WHITE_LED_GPIO_NUM);
 
 #if CONFIG_ENABLE_PW_RPC
     chip::rpc::Init();
