@@ -24,6 +24,7 @@
  */
 
 #include "LEDWidget.h"
+#include <support/logging/CHIPLogging.h>
 #include <algorithm>
 
 #if 0
@@ -130,7 +131,6 @@ void LEDWidget::Set(bool state)
 
 void LEDWidget::SetBrightness(uint8_t brightness)
 {
-    printf("\r\n\r\nSetBrightness brightness: %d\r\n\r\n", brightness);
     if (!mRgb)
     {
         if (brightness > 0 && brightness < 255)
@@ -165,15 +165,15 @@ void LEDWidget::SetBrightness(uint8_t brightness)
         duty_green = static_cast<float>(green) / 254.0;
         duty_blue = static_cast<float>(blue) / 254.0;
 
-        printf("\r\nbrightness: %d", brightness);
-        printf("\r\nred: %d, red_duty: %f", red, duty_red);
-        printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
-        printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
+        ChipLogProgress(DeviceLayer, "brightness: %d", brightness);
+        ChipLogProgress(DeviceLayer, "red: %d, red_duty: %f", red, duty_red);
+        ChipLogProgress(DeviceLayer, "green: %d, green_duty: %f", green, duty_green);
+        ChipLogProgress(DeviceLayer, "blue: %d, blue_duty: %f", blue, duty_blue);
 
         if (mRgbw)
         {
-            printf("\r\ncwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
-            printf("\r\nwwhite: %d, wwhite_duty: %f", warmwhite, duty_wwhite);
+            ChipLogProgress(DeviceLayer, "cwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
+            ChipLogProgress(DeviceLayer, "wwhite: %d, wwhite_duty: %f", warmwhite, duty_wwhite);
             pwmout_write(mPwm_cwhite, duty_cwhite);
             pwmout_write(mPwm_wwhite, duty_wwhite);
         }
@@ -216,15 +216,15 @@ void LEDWidget::SetColor(uint8_t Hue, uint8_t Saturation)
         duty_green = static_cast<float>(green) / 254.0;
         duty_blue = static_cast<float>(blue) / 254.0;
 
-        printf("\r\nbrightness: %d", brightness);
-        printf("\r\nred: %d, red_duty: %f", red, duty_red);
-        printf("\r\ngreen: %d, green_duty: %f", green, duty_green);
-        printf("\r\nblue: %d, blue_duty: %f", blue, duty_blue);
+        ChipLogProgress(DeviceLayer, "brightness: %d", brightness);
+        ChipLogProgress(DeviceLayer, "red: %d, red_duty: %f", red, duty_red);
+        ChipLogProgress(DeviceLayer, "green: %d, green_duty: %f", green, duty_green);
+        ChipLogProgress(DeviceLayer, "blue: %d, blue_duty: %f", blue, duty_blue);
 
         if (mRgbw)
         {
-            printf("\r\ncwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
-            printf("\r\nwwhite: %d, wwhite_duty: %f\r\n", warmwhite, duty_wwhite);
+            ChipLogProgress(DeviceLayer, "cwhite: %d, cwhite_duty: %f", coolwhite, duty_cwhite);
+            ChipLogProgress(DeviceLayer, "wwhite: %d, wwhite_duty: %f\r\n", warmwhite, duty_wwhite);
             pwmout_write(mPwm_cwhite, duty_cwhite);
             pwmout_write(mPwm_wwhite, duty_wwhite);
         }
@@ -244,7 +244,7 @@ void LEDWidget::SetColorTemp(uint16_t colortemp)
         mColorTemp = 0;
 #endif
     mColorTemp = colortemp;
-    printf("\r\nmColorTemp: %d\r\n", mColorTemp);
+    ChipLogProgress(DeviceLayer, "Color Temperature changed to %d", mColorTemp);
     SetBrightness(mDefaultOnBrightness);
 }
 
@@ -289,13 +289,11 @@ void LEDWidget::HSB2rgb(uint16_t Hue, uint8_t Saturation, uint8_t brightness, ui
         blue  = rgb_max - rgb_adj;
         break;
     }
-    printf("\r\nred: %d, green: %d, blue: %d", red, green, blue);
 }
 
 void LEDWidget:: simpleRGB2RGBW(uint8_t & red, uint8_t & green, uint8_t & blue, uint8_t & cwhite, uint8_t & wwhite)
 {
     uint8_t white = std::min({red, green, blue});    
-    printf("\r\nDebug white = %d\r\n", white);
 
     // Original color channel minus the contribution of white channel
     red -= white;
@@ -313,14 +311,9 @@ void LEDWidget:: simpleRGB2RGBW(uint8_t & red, uint8_t & green, uint8_t & blue, 
         i++;
     }
 
-    if (i == 11)
-    {
-        cwhite = white * WhitePercentage[10][1] / 100;
-        wwhite = white * WhitePercentage[10][2] / 100;
-    }
-    else
-    {
-        cwhite = white * WhitePercentage[i][1] / 100;
-        wwhite = white * WhitePercentage[i][2] / 100;
-    }
+    if (i != 0)
+        i -= 1;
+
+    cwhite = white * WhitePercentage[i][1] / 100;
+    wwhite = white * WhitePercentage[i][2] / 100;
 }

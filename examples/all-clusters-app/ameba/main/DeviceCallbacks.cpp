@@ -32,6 +32,7 @@
 #include <app/util/af.h>
 #include <app/util/basic-types.h>
 #include <app/util/util.h>
+#include <app/util/attribute-storage-null-handling.h>
 #include <lib/dnssd/Advertiser.h>
 #include <support/CodeUtils.h>
 #include <support/logging/CHIPLogging.h>
@@ -42,6 +43,7 @@
 
 using namespace ::chip;
 using namespace ::chip::app;
+using namespace ::chip::app::Clusters;
 using namespace ::chip::Inet;
 using namespace ::chip::System;
 using namespace ::chip::DeviceLayer;
@@ -141,7 +143,7 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
 
     // At this point we can assume that value points to a bool value.
     mEndpointOnOffState[endpointId - 1] = *value;
-    printf("\r\n\r\n calling Set with value: %d\r\n\r\n", *value);
+    ChipLogProgress(DeviceLayer, "Calling Set with value: %d", *value);
     rgbwLED.Set(*value);
 
 exit:
@@ -159,7 +161,7 @@ void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointI
             ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
 
     // At this point we can assume that value points to a bool value.
-    printf("\r\n\r\n calling SetBrightness with value: %d\r\n\r\n", brightness);
+    ChipLogProgress(DeviceLayer, "Calling SetBrightness with value: %d", brightness);
     rgbwLED.SetBrightness(brightness);
 
 exit:
@@ -196,7 +198,7 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
                 emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
                                            sizeof(uint8_t));
             }
-            printf("\r\n\r\n calling SetColor with hue:%d, saturation:%d \r\n\r\n", hue, saturation);
+            ChipLogProgress(DeviceLayer, "Calling SetColor with hue:%d, saturation:%d", hue, saturation);
             rgbwLED.SetColor(hue, saturation);
         }
     }
@@ -205,8 +207,13 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
     {
         if (endpointId == 1)
         {
-            printf("\r\ncolor temp changed\r\n");
-            uint16_t colortemp = *value;
+            using Traits = NumericAttributeTraits<uint16_t>;
+            Traits::StorageType temp;
+            uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID, readable, sizeof(temp));
+
+            uint16_t colortemp;
+            colortemp = Traits::StorageToWorking(temp);
             rgbwLED.SetColorTemp(colortemp);
         }
     }
