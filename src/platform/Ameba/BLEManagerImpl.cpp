@@ -141,7 +141,7 @@ CHIP_ERROR BLEManagerImpl::_Init()
     // Check if BLE stack is initialized
     VerifyOrExit(!mFlags.Has(Flags::kAMEBABLEStackInitialized), err = CHIP_ERROR_INCORRECT_STATE);
 
-    err = MapBLEError(bt_matter_adapter_init());
+    err = MapBLEError(ble_matter_netmgr_adapter_init_handler());
     chip_blemgr_set_callback_func((chip_blemgr_callback)(ble_callback_dispatcher), this);
     SuccessOrExit(err);
 
@@ -638,9 +638,9 @@ CHIP_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
         adv_int_max     = CHIP_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL_MAX;
         bleAdvTimeoutMs = CHIP_DEVICE_CONFIG_BLE_ADVERTISING_TIMEOUT;
     }
-    le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MIN, sizeof(adv_int_min), &adv_int_min);
-    le_adv_set_param(GAP_PARAM_ADV_INTERVAL_MAX, sizeof(adv_int_max), &adv_int_max);
-    le_adv_set_param(GAP_PARAM_ADV_DATA, sizeof(advData), (void *) advData); // set advData
+
+    // Set adv parameters
+    ble_matter_netmgr_adv_param_handler(adv_int_min, adv_int_max, advData, sizeof(advData));
 
 exit:
     return err;
@@ -654,8 +654,7 @@ CHIP_ERROR BLEManagerImpl::StartAdvertising(void)
     SuccessOrExit(err);
 
     // Start advertising
-    ble_matter_netmgr_stop_adv();
-    ble_matter_netmgr_start_adv();
+    ble_matter_netmgr_adv_start_handler();
 
     mFlags.Set(Flags::kAdvertising);
     mFlags.Clear(Flags::kRestartAdvertising);
@@ -677,7 +676,7 @@ CHIP_ERROR BLEManagerImpl::StopAdvertising(void)
     CHIP_ERROR err;
 
     // Stop advertising
-    ble_matter_netmgr_stop_adv();
+    ble_matter_netmgr_adv_stop_handler();
 
     // Change flag status to the 'not Advertising state'
     if (mFlags.Has(Flags::kAdvertising))
