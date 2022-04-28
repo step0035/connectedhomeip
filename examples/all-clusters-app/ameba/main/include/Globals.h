@@ -19,5 +19,7 @@
 #pragma once
 
 #include "LEDWidget.h"
+#include "ThermostatManager.h"
 
 extern LEDWidget statusLED1;
+extern ThermostatManager thermostat1;
