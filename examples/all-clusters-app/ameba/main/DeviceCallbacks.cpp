@@ -90,6 +90,9 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
         OnIdentifyPostAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
+    case ZCL_THERMOSTAT_CLUSTER_ID:
+        Thermostat_PostAttributeChangeCallback(endpointId, attributeId, value);
+        break;
     default:
         break;
     }
@@ -160,6 +163,21 @@ void DeviceCallbacks::OnIdentifyPostAttributeChangeCallback(EndpointId endpointI
 exit:
     return;
 }
+
+void DeviceCallbacks::Thermostat_PostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    VerifyOrExit(attributeId == ZCL_LOCAL_TEMPERATURE_ATTRIBUTE_ID,
+                 ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1 || endpointId == 2,
+                 ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+
+    thermostat1.Set(*value);
+
+exit:
+    return;
+}
+
+
 
 bool emberAfBasicClusterMfgSpecificPingCallback(chip::app::CommandHandler * commandObj)
 {

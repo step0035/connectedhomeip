@@ -182,6 +182,7 @@ extern "C" void ChipTest(void)
     chip::DeviceLayer::PlatformMgr().ScheduleWork(InitServer, 0);
 
     statusLED1.Init(STATUS_LED_GPIO_NUM);
+    thermostat1.Init(NULL);
 }
 
 bool lowPowerClusterSleep()
