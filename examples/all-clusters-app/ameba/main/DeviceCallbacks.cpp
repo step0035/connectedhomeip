@@ -80,6 +80,7 @@ void DeviceCallbacks::DeviceEventCallback(const ChipDeviceEvent * event, intptr_
 void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, ClusterId clusterId, AttributeId attributeId, uint8_t mask,
                                                   uint8_t type, uint16_t size, uint8_t * value)
 {
+vTaskDelay(1); printf("PostAttributeChangeCallback endpointId = %d; clusterId=%d; attributeId=%d; value=%d\n",endpointId,clusterId,attributeId,*value); vTaskDelay(1);
     switch (clusterId)
     {
     case ZCL_ON_OFF_CLUSTER_ID:
@@ -91,7 +92,10 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
         break;
 
     case ZCL_THERMOSTAT_CLUSTER_ID:
+    {
+    vTaskDelay(1); printf("case ZCL_THERMOSTAT_CLUSTER_ID\n"); vTaskDelay(1);
         Thermostat_PostAttributeChangeCallback(endpointId, attributeId, value);
+    }
         break;
     default:
         break;
@@ -166,12 +170,22 @@ exit:
 
 void DeviceCallbacks::Thermostat_PostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
-    VerifyOrExit(attributeId == ZCL_LOCAL_TEMPERATURE_ATTRIBUTE_ID,
-                 ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
+    vTaskDelay(1); printf("!!!!!!!!!!!!!!!!!!!Thermostat_PostAttributeChangeCallback attributeId=%d value=%d\n",attributeId,*value); vTaskDelay(1);
     VerifyOrExit(endpointId == 1 || endpointId == 2,
-                 ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+             ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+    switch (attributeId)
+    {
+    case ZCL_OCCUPIED_COOLING_SETPOINT_ATTRIBUTE_ID:
+        thermostat1.Set(*value);
+        break;
 
-    thermostat1.Set(*value);
+    case ZCL_OCCUPIED_HEATING_SETPOINT_ATTRIBUTE_ID:
+        thermostat1.Set(*value);
+        break;
+    default:
+    	ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId);
+        break;
+    }
 
 exit:
     return;
