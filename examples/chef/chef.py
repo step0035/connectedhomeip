@@ -65,6 +65,7 @@ def load_config() -> None:
     config["nrfconnect"] = dict()
     config["esp32"] = dict()
     config["silabs-thread"] = dict()
+    config["ameba"] = dict()
     configFile = f"{_CHEF_SCRIPT_PATH}/config.yaml"
     if (os.path.exists(configFile)):
         configStream = open(configFile, 'r')
@@ -82,6 +83,9 @@ def load_config() -> None:
         config["silabs-thread"]["GECKO_SDK"] = f"{_REPO_BASE_PATH}third_party/efr32_sdk/repo"
         config["silabs-thread"]["TTY"] = None
         config["silabs-thread"]["CU"] = None
+        config["ameba"]["AMEBA_SDK"] = None
+        config["ameba"]["MATTER_SDK"] = None
+        config["ameba"]["TTY"] = None
 
         flush_print(yaml.dump(config))
         yaml.dump(config, configStream)
@@ -200,6 +204,7 @@ def main(argv: Sequence[str]) -> None:
             esp32
             linux
             silabs-thread
+            ameba
 
         Device Types:
             {deviceTypes}
@@ -236,7 +241,7 @@ def main(argv: Sequence[str]) -> None:
                       action='store',
                       dest="build_target",
                       help="specifies target platform. Default is esp32. See info below for currently supported target platforms",
-                      choices=['nrfconnect', 'esp32', 'linux', 'silabs-thread'],
+                      choices=['nrfconnect', 'esp32', 'linux', 'silabs-thread', 'ameba'],
                       metavar="TARGET",
                       default="esp32")
     parser.add_option("-r", "--rpc", help="enables Pigweed RPC interface. Enabling RPC disables the shell interface. Your sdkconfig configurations will be reverted to default. Default is PW RPC off. When enabling or disabling this flag, on the first build force a clean build with -c", action="store_true", dest="do_rpc")
@@ -428,6 +433,13 @@ def main(argv: Sequence[str]) -> None:
         pass
     elif options.build_target == "silabs-thread":
         flush_print('Path to gecko sdk is configured within Matter.')
+    elif options.build_target == "ameba":
+        if config['ameba']['AMEBA_SDK'] is None:
+            flush_print('Path for Ameba SDK was not found. Make sure AMEBA_SDK is set on your config.yaml file')
+            exit(1)
+        if config['ameba']['MATTER_SDK'] is None:
+            flush_print('Path for Matter SDK was not found. Make sure MATTER_SDK is set on your config.yaml file')
+            exit(1)
     else:
         flush_print(f"Target {options.build_target} not supported")
 
@@ -448,6 +460,8 @@ def main(argv: Sequence[str]) -> None:
             flush_print("Silabs-thread toolchain not supported. Skipping")
         elif options.build_target == "linux":
             flush_print("Linux toolchain update not supported. Skipping")
+        elif options.build_target == "ameba":
+            flush_print("Ameba toolchain update not supported. Skipping")
 
     #
     # Cluster customization
@@ -483,6 +497,8 @@ def main(argv: Sequence[str]) -> None:
             flush_print("Menuconfig not available on Silabs-thread target. Skipping")
         elif options.build_target == "linux":
             flush_print("Menuconfig not available on Linux target. Skipping")
+        elif options.build_target == "Ameba":
+            flush_print("Menuconfig not available on Ameba target. Skipping")
 
     #
     # Build
@@ -527,7 +543,7 @@ def main(argv: Sequence[str]) -> None:
             f"Product ID 0x{options.pid:02X} / Vendor ID 0x{options.vid:02X}")
         shell.run_cmd(f"cd {_CHEF_SCRIPT_PATH}")
 
-        if (options.build_target == "esp32") or (options.build_target == "nrfconnect"):
+        if (options.build_target == "esp32") or (options.build_target == "nrfconnect") or (options.build_target == "ameba"):
             with open("project_include.cmake", "w") as f:
                 f.write(textwrap.dedent(f"""\
                         set(CONFIG_DEVICE_VENDOR_ID {options.vid})
@@ -582,6 +598,12 @@ def main(argv: Sequence[str]) -> None:
                 shell.run_cmd("gn gen out --args=''")
             shell.run_cmd("ninja -C out")
 
+        elif options.build_target == "ameba":
+            shell.run_cmd(f"cd {config['ameba']['AMEBA_SDK']}/project/realtek_amebaz2_v0_example/GCC-RELEASE")
+            if options.do_clean:
+                shell.run_cmd("make clean")
+            shell.run_cmd("make chef")
+            shell.run_cmd("make is")
     #
     # Compilation DB TODO
     #
@@ -612,6 +634,10 @@ def main(argv: Sequence[str]) -> None:
             shell.run_cmd(f"python3 out/{options.sample_device_type_name}/BRD4186A/chip-efr32-chef-example.flash.py")
 
             shell.run_cmd(f"cd {_CHEF_SCRIPT_PATH}")
+        elif (options.build_target == "ameba"):
+            shell.run_cmd(f"cd {config['ameba']['AMEBA_SDK']}/tools/AmebaZ2/Image_Tool_Linux")
+            #shell.run_cmd("rm -rf Image_All.bin log_*")
+            shell.run_cmd(f"./flash.sh {config['ameba']['TTY']} {config['ameba']['AMEBA_SDK']}/project/realtek_amebaz2_v0_example/GCC-RELEASE")
 
     #
     # Terminal interaction
@@ -644,6 +670,12 @@ def main(argv: Sequence[str]) -> None:
                 f"{_CHEF_SCRIPT_PATH}/linux/out/{options.sample_device_type_name}")
             shell.run_cmd(
                 f"{_CHEF_SCRIPT_PATH}/linux/out/{options.sample_device_type_name}")
+        elif options.build_target == "ameba":
+            if config['ameba']['TTY'] is None:
+                flush_print('The path for the serial enumeration for ameba is not set. Make sure ameba.TTY is set on your config.yaml file')
+                exit(1)
+            shell.run_cmd("killall screen")
+            shell.run_cmd(f"screen {config['ameba']['TTY']} 115200")
 
     #
     # RPC Console
