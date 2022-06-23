@@ -103,7 +103,7 @@ string(APPEND CHIP_GN_ARGS "ameba_ar = \"arm-none-eabi-ar\"\n")
 string(APPEND CHIP_GN_ARGS "ameba_cc = \"arm-none-eabi-gcc\"\n")
 string(APPEND CHIP_GN_ARGS "ameba_cxx = \"arm-none-eabi-c++\"\n")
 string(APPEND CHIP_GN_ARGS "ameba_cpu = \"ameba\"\n")
-string(APPEND CHIP_GN_ARGS "chip_inet_config_enable_ipv4 = false\n")
+string(APPEND CHIP_GN_ARGS "chip_inet_config_enable_ipv4 = true\n")
 
 # Build RPC
 if (matter_enable_rpc)

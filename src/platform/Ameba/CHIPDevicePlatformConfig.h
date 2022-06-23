@@ -60,6 +60,10 @@
 
 #define CHIP_DEVICE_LAYER_NONE 0
 
+// Use a default pairing code if one hasn't been provisioned in flash.
+#define CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID 0xFFF1
+#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x8001
+
 //  Enable use of test setup parameters for testing purposes only.
 //
 //    WARNING: This option makes it possible to circumvent basic chip security functionality.
