@@ -1729,4 +1729,13 @@ endpoint 1 {
   }
 }
 
+endpoint 1 {
+  server  cluster Basic;
+  server  cluster Descriptor;
+  server  cluster Groups;
+  binding cluster Identify;
+  server  cluster Identify;
+  server  cluster Scenes;
+  server  cluster Thermostat;
+}
 
