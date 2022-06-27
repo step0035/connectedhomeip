@@ -20,7 +20,6 @@
 #include "CHIPDeviceManager.h"
 #include "DeviceCallbacks.h"
 #include "Globals.h"
-#include "LEDWidget.h"
 #include "chip_porting.h"
 #include <lwip_netconf.h>
 
@@ -196,7 +195,7 @@ extern "C" void ChipTest(void)
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(InitServer, 0);
 
-    statusLED1.Init(STATUS_LED_GPIO_NUM);
+    thermostat1.Init(NULL);
 }
 
 bool lowPowerClusterSleep()

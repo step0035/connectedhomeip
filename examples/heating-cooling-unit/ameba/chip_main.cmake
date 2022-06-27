@@ -22,9 +22,9 @@ pw_set_backend(pw_assert pw_assert_log)
 pw_set_backend(pw_sys_io pw_sys_io.ameba)
 pw_set_backend(pw_trace pw_trace_tokenized)
 
-add_subdirectory(${chip_dir}/third_party/pigweed/repo ${chip_dir}/examples/all-clusters-app/ameba/out/pigweed)
-add_subdirectory(${chip_dir}/third_party/nanopb/repo ${chip_dir}/examples/all-clusters-app/ameba/out/nanopb)
-add_subdirectory(${chip_dir}/examples/platform/ameba/pw_sys_io ${chip_dir}/examples/all-clusters-app/ameba/out/pw_sys_io)
+add_subdirectory(${chip_dir}/third_party/pigweed/repo ${chip_dir}/examples/heating-cooling-unit/ameba/out/pigweed)
+add_subdirectory(${chip_dir}/third_party/nanopb/repo ${chip_dir}/examples/heating-cooling-unit/ameba/out/nanopb)
+add_subdirectory(${chip_dir}/examples/platform/ameba/pw_sys_io ${chip_dir}/examples/heating-cooling-unit/ameba/out/pw_sys_io)
 
 pw_proto_library(attributes_service
   SOURCES
@@ -128,18 +128,14 @@ endif (matter_enable_ota_requestor)
 list(
     APPEND ${list_chip_main_sources}
 
-    ${chip_dir}/zzz_generated/all-clusters-app/zap-generated/callback-stub.cpp
-    ${chip_dir}/zzz_generated/all-clusters-app/zap-generated/IMClusterCommandHandler.cpp
-
-    ${chip_dir}/examples/all-clusters-app/all-clusters-common/src/bridged-actions-stub.cpp
-    ${chip_dir}/examples/all-clusters-app/all-clusters-common/src/static-supported-modes-manager.cpp
-
-    ${chip_dir}/examples/all-clusters-app/ameba/main/chipinterface.cpp
-    ${chip_dir}/examples/all-clusters-app/ameba/main/DeviceCallbacks.cpp
-    ${chip_dir}/examples/all-clusters-app/ameba/main/CHIPDeviceManager.cpp
-    ${chip_dir}/examples/all-clusters-app/ameba/main/Globals.cpp
-    ${chip_dir}/examples/all-clusters-app/ameba/main/LEDWidget.cpp
-    ${chip_dir}/examples/all-clusters-app/ameba/main/DsoHack.cpp
+    ${chip_dir}/zzz_generated/heating-cooling-unit/zap-generated/callback-stub.cpp
+    ${chip_dir}/zzz_generated/heating-cooling-unit/zap-generated/IMClusterCommandHandler.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/chipinterface.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/DeviceCallbacks.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/CHIPDeviceManager.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/Globals.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/DsoHack.cpp
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/ThermostatManager.cpp
 )
 
 add_library(
@@ -150,7 +146,7 @@ add_library(
 
 chip_configure_data_model(chip_main
     INCLUDE_SERVER
-    ZAP_FILE ${matter_example_path}/../all-clusters-common/all-clusters-app.zap
+    ZAP_FILE ${matter_example_path}/../heating-cooling-unit-common/heating-cooling-unit.zap
 )
 
 if (matter_enable_rpc)
@@ -173,12 +169,12 @@ target_include_directories(
     ${chip_main}
     PUBLIC
     ${inc_path}
-    ${chip_dir}/zzz_generated/all-clusters-app
-    ${chip_dir}/zzz_generated/all-clusters-app/zap-generated
+    ${chip_dir}/zzz_generated/heating-cooling-unit
+    ${chip_dir}/zzz_generated/heating-cooling-unit/zap-generated
     ${chip_dir}/zzz_generated/app-common
-    ${chip_dir}/examples/all-clusters-app/all-clusters-common
-    ${chip_dir}/examples/all-clusters-app/all-clusters-common/include
-    ${chip_dir}/examples/all-clusters-app/ameba/main/include
+    ${chip_dir}/examples/heating-cooling-unit/heating-cooling-unit-common
+    ${chip_dir}/examples/heating-cooling-unit/heating-cooling-unit-common/include
+    ${chip_dir}/examples/heating-cooling-unit/ameba/main/include
     ${chip_dir_output}/gen/include
     ${chip_dir}/src/include/
     ${chip_dir}/src/lib/
@@ -225,7 +221,7 @@ list(
     -DUSE_ZAP_CONFIG
     -DCHIP_HAVE_CONFIG_H
     -DMBEDTLS_CONFIG_FILE=<mbedtls_config.h>
-    -DMATTER_ALL_CLUSTERS_APP=1
+    -DMATTER_HEATING_COOLING_UNIT=1
 )
 
 if (matter_enable_rpc)
