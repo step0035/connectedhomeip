@@ -15,7 +15,24 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+#pragma once
 
-#include "Globals.h"
+#include <platform_stdlib.h>
+#include <ThermostatManager.h>
 
-ThermostatManager thermostat1;
+void ThermostatManager::Init(uint8_t test_val)
+{
+    //Peripheral init
+    printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Thermostat init, test_val=%d\n",test_val);
+}
+
+void ThermostatManager::Set(uint8_t state)
+{
+    DoSet(state);
+}
+
+void ThermostatManager::DoSet(uint8_t state)
+{
+    //Peripheral action
+    printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Thermostat action= %d\n", state);
+}

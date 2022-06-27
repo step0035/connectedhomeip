@@ -36,9 +36,7 @@
 #include <support/CodeUtils.h>
 #include <support/logging/CHIPLogging.h>
 #include <support/logging/Constants.h>
-
 #include "Globals.h"
-#include "LEDWidget.h"
 
 static const char * TAG = "app-devicecallbacks";
 
@@ -90,6 +88,10 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
         OnIdentifyPostAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
+    case ZCL_THERMOSTAT_CLUSTER_ID:
+        Thermostat_PostAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
     default:
         break;
     }
@@ -131,10 +133,6 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
                  ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
     VerifyOrExit(endpointId == 1 || endpointId == 2,
                  ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
-
-    // At this point we can assume that value points to a bool value.
-    statusLED1.Set(*value);
-
 exit:
     return;
 }
@@ -157,6 +155,29 @@ void DeviceCallbacks::OnIdentifyPostAttributeChangeCallback(EndpointId endpointI
     // value is expressed in seconds and the timer is fired every 250ms, so just multiply value by 4.
     // Also, we want timerCount to be odd number, so the ligth state ends in the same state it starts.
     identifyTimerCount = (*value) * 4;
+exit:
+    return;
+}
+
+void DeviceCallbacks::Thermostat_PostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    vTaskDelay(1); printf("!!!!!!!!!!!!!!!!!!!Thermostat_PostAttributeChangeCallback attributeId=%d value=%d\n",attributeId,*value); vTaskDelay(1);
+    VerifyOrExit(endpointId == 1 || endpointId == 2,
+             ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+    switch (attributeId)
+    {
+    case ZCL_OCCUPIED_COOLING_SETPOINT_ATTRIBUTE_ID:
+        thermostat1.Set(*value);
+        break;
+
+    case ZCL_OCCUPIED_HEATING_SETPOINT_ATTRIBUTE_ID:
+        thermostat1.Set(*value);
+        break;
+    default:
+        ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId);
+        break;
+    }
+
 exit:
     return;
 }

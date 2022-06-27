@@ -16,6 +16,17 @@
  *    limitations under the License.
  */
 
-#include "Globals.h"
+#pragma once
 
-ThermostatManager thermostat1;
+#include <platform_stdlib.h>
+
+class ThermostatManager
+{
+public:
+    void Init(uint8_t test_val);
+    void Set(uint8_t state);
+
+private:
+    bool mState;
+    void DoSet(uint8_t state);
+};
