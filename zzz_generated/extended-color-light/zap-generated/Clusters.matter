@@ -237,6 +237,7 @@ server cluster ColorControl = 768 {
 
   readonly attribute int8u currentHue = 0;
   readonly attribute int8u currentSaturation = 1;
+  readonly attribute int16u remainingTime = 2;
   readonly attribute int16u currentX = 3;
   readonly attribute int16u currentY = 4;
   readonly attribute int16u colorTemperature = 7;

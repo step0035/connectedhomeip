@@ -7126,7 +7126,7 @@
               "mfgCode": null,
               "side": "server",
               "type": "int16u",
-              "included": 0,
+              "included": 1,
               "storageOption": "RAM",
               "singleton": 0,
               "bounded": 0,
