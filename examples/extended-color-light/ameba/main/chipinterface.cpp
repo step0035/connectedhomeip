@@ -184,6 +184,8 @@ static void InitServer(intptr_t context)
 #if CONFIG_ENABLE_OTA_REQUESTOR
     InitOTARequestor();
 #endif
+    extendedcolorlight1.Init(NULL);
+    statusLED1.Init(STATUS_LED_GPIO_NUM);
 
     if (RTW_SUCCESS != wifi_is_connected_to_ap())
     {
@@ -212,8 +214,6 @@ extern "C" void ChipTest(void)
     }
 
     chip::DeviceLayer::PlatformMgr().ScheduleWork(InitServer, 0);
-
-    statusLED1.Init(STATUS_LED_GPIO_NUM);
 }
 
 bool lowPowerClusterSleep()

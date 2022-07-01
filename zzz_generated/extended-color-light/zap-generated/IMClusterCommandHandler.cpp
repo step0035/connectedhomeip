@@ -551,14 +551,6 @@ void DispatchServerCommand(CommandHandler * apCommandObj, const ConcreteCommandP
         }
             break;
         }
-        case Commands::TriggerEffect::Id: {
-        Commands::TriggerEffect::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfIdentifyClusterTriggerEffectCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
         default: {
             // Unrecognized command ID, error status will apply.
             apCommandObj->AddStatus(aCommandPath, Protocols::InteractionModel::Status::UnsupportedCommand);
@@ -811,30 +803,6 @@ void DispatchServerCommand(CommandHandler * apCommandObj, const ConcreteCommandP
         }
             break;
         }
-        case Commands::OffWithEffect::Id: {
-        Commands::OffWithEffect::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfOnOffClusterOffWithEffectCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
-        case Commands::OnWithRecallGlobalScene::Id: {
-        Commands::OnWithRecallGlobalScene::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfOnOffClusterOnWithRecallGlobalSceneCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
-        case Commands::OnWithTimedOff::Id: {
-        Commands::OnWithTimedOff::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        wasHandled = emberAfOnOffClusterOnWithTimedOffCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
         default: {
             // Unrecognized command ID, error status will apply.
             apCommandObj->AddStatus(aCommandPath, Protocols::InteractionModel::Status::UnsupportedCommand);
@@ -1014,33 +982,6 @@ void DispatchServerCommand(CommandHandler * apCommandObj, const ConcreteCommandP
         TLVError = DataModel::Decode(aDataTlv, commandData);
         if (TLVError == CHIP_NO_ERROR) {
         wasHandled = emberAfScenesClusterGetSceneMembershipCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
-        case Commands::EnhancedAddScene::Id: {
-        Commands::EnhancedAddScene::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        /*Currently Not Supported*/
-        // wasHandled = emberAfScenesClusterEnhancedAddSceneCallback(apCommandObj, aCommandPath, commandData); 
-        }
-            break;
-        }
-        case Commands::EnhancedViewScene::Id: {
-        Commands::EnhancedViewScene::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        /*Currently Not Supported*/
-        //wasHandled = emberAfScenesClusterEnhancedViewSceneCallback(apCommandObj, aCommandPath, commandData);
-        }
-            break;
-        }
-        case Commands::CopyScene::Id: {
-        Commands::CopyScene::DecodableType commandData;
-        TLVError = DataModel::Decode(aDataTlv, commandData);
-        if (TLVError == CHIP_NO_ERROR) {
-        /*Currently Not Supported*/
-        // wasHandled = emberAfScenesClusterCopySceneCallback(apCommandObj, aCommandPath, commandData);
         }
             break;
         }
