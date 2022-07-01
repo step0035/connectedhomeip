@@ -200,7 +200,14 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
     VerifyOrExit(
             attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
             attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID ||
-            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID,
+            attributeId == ZCL_COLOR_CONTROL_REMAINING_TIME_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_X_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_Y_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMP_PHYSICAL_MIN_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMP_PHYSICAL_MAX_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_TEMPERATURE_LEVEL_MIN_MIREDS_ATTRIBUTE_ID ||
+            attributeId == ZCL_START_UP_COLOR_TEMPERATURE_MIREDS_ATTRIBUTE_ID,
             ChipLogError(DeviceLayer, "Unhandled AttributeId ID: '0x%04x", attributeId)
             );
     VerifyOrExit(
@@ -244,6 +251,52 @@ void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointI
             //rgbwLED.SetColorTemp(colortemp);
         }
     }
+
+    if (attributeId == ZCL_COLOR_CONTROL_CURRENT_X_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
+        {
+            using Traits = NumericAttributeTraits<uint16_t>;
+            Traits::StorageType temp;
+            uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_X_ATTRIBUTE_ID, readable, sizeof(temp));
+
+            uint16_t currentX;
+            currentX = Traits::StorageToWorking(temp);
+            //rgbwLED.SetcurrentX(currentX);
+        }
+    }
+
+    if (attributeId == ZCL_COLOR_CONTROL_CURRENT_Y_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
+        {
+            using Traits = NumericAttributeTraits<uint16_t>;
+            Traits::StorageType temp;
+            uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_Y_ATTRIBUTE_ID, readable, sizeof(temp));
+
+            uint16_t currentY;
+            currentY = Traits::StorageToWorking(temp);
+            //rgbwLED.SetcurrentY(currentY);
+        }
+    }
+
+    if (attributeId == ZCL_COLOR_CONTROL_REMAINING_TIME_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
+        {
+            using Traits = NumericAttributeTraits<uint16_t>;
+            Traits::StorageType temp;
+            uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_REMAINING_TIME_ATTRIBUTE_ID, readable, sizeof(temp));
+
+            uint16_t remainingTime;
+            remainingTime = Traits::StorageToWorking(temp);
+            //rgbwLED.SetRemainingTime(remainingTime);
+        }
+    }
+
 exit:
     return;
 }

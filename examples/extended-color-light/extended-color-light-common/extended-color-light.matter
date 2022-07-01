@@ -241,25 +241,12 @@ server cluster ColorControl = 768 {
   readonly attribute int16u currentX = 3;
   readonly attribute int16u currentY = 4;
   readonly attribute int16u colorTemperature = 7;
-  readonly attribute enum8 colorMode = 8;
   attribute bitmap8 colorControlOptions = 15;
-  readonly attribute int8u numberOfPrimaries = 16;
-  readonly attribute int16u enhancedCurrentHue = 16384;
-  readonly attribute enum8 enhancedColorMode = 16385;
-  readonly attribute int8u colorLoopActive = 16386;
-  readonly attribute int8u colorLoopDirection = 16387;
-  readonly attribute int16u colorLoopTime = 16388;
-  readonly attribute int16u colorLoopStartEnhancedHue = 16389;
-  readonly attribute int16u colorLoopStoredEnhancedHue = 16390;
-  readonly attribute bitmap16 colorCapabilities = 16394;
-  readonly attribute int16u colorTempPhysicalMin = 16395;
-  readonly attribute int16u colorTempPhysicalMax = 16396;
   readonly attribute int16u coupleColorTempToLevelMinMireds = 16397;
   attribute access(write: manage) int16u startUpColorTemperatureMireds = 16400;
   readonly attribute command_id generatedCommandList[] = 65528;
   readonly attribute command_id acceptedCommandList[] = 65529;
   readonly attribute attrib_id attributeList[] = 65531;
-  readonly attribute bitmap32 featureMap = 65532;
   readonly attribute int16u clusterRevision = 65533;
 
   request struct MoveToHueRequest {
@@ -818,18 +805,12 @@ server cluster Identify = 3 {
     INT16U identifyTime = 0;
   }
 
-  request struct TriggerEffectRequest {
-    IdentifyEffectIdentifier effectIdentifier = 0;
-    IdentifyEffectVariant effectVariant = 1;
-  }
-
   response struct IdentifyQueryResponse = 0 {
     INT16U timeout = 0;
   }
 
   command access(invoke: manage) Identify(IdentifyRequest): DefaultSuccess = 0;
   command access(invoke: manage) IdentifyQuery(): IdentifyQueryResponse = 1;
-  command access(invoke: manage) TriggerEffect(TriggerEffectRequest): DefaultSuccess = 64;
 }
 
 server cluster LevelControl = 8 {
@@ -850,23 +831,9 @@ server cluster LevelControl = 8 {
   }
 
   readonly attribute int8u currentLevel = 0;
-  readonly attribute int16u remainingTime = 1;
-  readonly attribute int8u minLevel = 2;
-  readonly attribute int8u maxLevel = 3;
-  readonly attribute int16u currentFrequency = 4;
-  readonly attribute int16u minFrequency = 5;
-  readonly attribute int16u maxFrequency = 6;
-  attribute bitmap8 options = 15;
-  attribute int16u onOffTransitionTime = 16;
-  attribute nullable int8u onLevel = 17;
-  attribute nullable int16u onTransitionTime = 18;
-  attribute nullable int16u offTransitionTime = 19;
-  attribute nullable int8u defaultMoveRate = 20;
-  attribute access(write: manage) nullable int8u startUpCurrentLevel = 16384;
   readonly attribute command_id generatedCommandList[] = 65528;
   readonly attribute command_id acceptedCommandList[] = 65529;
   readonly attribute attrib_id attributeList[] = 65531;
-  readonly attribute bitmap32 featureMap = 65532;
   readonly attribute int16u clusterRevision = 65533;
 
   request struct MoveToLevelRequest {
@@ -1196,13 +1163,6 @@ server cluster OtaSoftwareUpdateRequestor = 42 {
   command AnnounceOtaProvider(AnnounceOtaProviderRequest): DefaultSuccess = 0;
 }
 
-server cluster OccupancySensing = 1030 {
-  readonly attribute bitmap8 occupancy = 0;
-  readonly attribute enum8 occupancySensorType = 1;
-  readonly attribute bitmap8 occupancySensorTypeBitmap = 2;
-  readonly attribute int16u clusterRevision = 65533;
-}
-
 server cluster OnOff = 6 {
   enum OnOffDelayedAllOffEffectVariant : enum8 {
     kFadeToOffIn0p8Seconds = 0;
@@ -1234,33 +1194,14 @@ server cluster OnOff = 6 {
   }
 
   readonly attribute boolean onOff = 0;
-  readonly attribute boolean globalSceneControl = 16384;
-  attribute int16u onTime = 16385;
-  attribute int16u offWaitTime = 16386;
-  attribute access(write: manage) nullable OnOffStartUpOnOff startUpOnOff = 16387;
   readonly attribute command_id generatedCommandList[] = 65528;
   readonly attribute command_id acceptedCommandList[] = 65529;
   readonly attribute attrib_id attributeList[] = 65531;
-  readonly attribute bitmap32 featureMap = 65532;
   readonly attribute int16u clusterRevision = 65533;
-
-  request struct OffWithEffectRequest {
-    OnOffEffectIdentifier effectId = 0;
-    OnOffDelayedAllOffEffectVariant effectVariant = 1;
-  }
-
-  request struct OnWithTimedOffRequest {
-    OnOffControl onOffControl = 0;
-    int16u onTime = 1;
-    int16u offWaitTime = 2;
-  }
 
   command Off(): DefaultSuccess = 0;
   command On(): DefaultSuccess = 1;
   command Toggle(): DefaultSuccess = 2;
-  command OffWithEffect(OffWithEffectRequest): DefaultSuccess = 64;
-  command OnWithRecallGlobalScene(): DefaultSuccess = 65;
-  command OnWithTimedOff(OnWithTimedOffRequest): DefaultSuccess = 66;
 }
 
 server cluster OperationalCredentials = 62 {
@@ -1537,27 +1478,6 @@ server cluster Scenes = 5 {
     INT16U groupId = 0;
   }
 
-  request struct EnhancedAddSceneRequest {
-    INT16U groupId = 0;
-    INT8U sceneId = 1;
-    INT16U transitionTime = 2;
-    CHAR_STRING sceneName = 3;
-    SceneExtensionFieldSet extensionFieldSets[] = 4;
-  }
-
-  request struct EnhancedViewSceneRequest {
-    INT16U groupId = 0;
-    INT8U sceneId = 1;
-  }
-
-  request struct CopySceneRequest {
-    ScenesCopyMode mode = 0;
-    INT16U groupIdFrom = 1;
-    INT8U sceneIdFrom = 2;
-    INT16U groupIdTo = 3;
-    INT8U sceneIdTo = 4;
-  }
-
   response struct AddSceneResponse = 0 {
     ENUM8 status = 0;
     INT16U groupId = 1;
@@ -1605,9 +1525,6 @@ server cluster Scenes = 5 {
   command access(invoke: manage) StoreScene(StoreSceneRequest): StoreSceneResponse = 4;
   command RecallScene(RecallSceneRequest): DefaultSuccess = 5;
   command GetSceneMembership(GetSceneMembershipRequest): GetSceneMembershipResponse = 6;
-  command EnhancedAddScene(EnhancedAddSceneRequest): EnhancedAddSceneResponse = 64;
-  command EnhancedViewScene(EnhancedViewSceneRequest): EnhancedViewSceneResponse = 65;
-  command CopyScene(CopySceneRequest): CopySceneResponse = 66;
 }
 
 server cluster SoftwareDiagnostics = 52 {
@@ -1948,7 +1865,6 @@ endpoint 1 {
   server  cluster Groups;
   server  cluster Identify;
   server  cluster LevelControl;
-  server  cluster OccupancySensing;
   server  cluster OnOff;
   binding cluster Scenes;
   server  cluster Scenes;

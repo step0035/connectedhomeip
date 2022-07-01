@@ -491,7 +491,7 @@
 
 #define ZAP_ATTRIBUTE_MASK(mask) ATTRIBUTE_MASK_ ## mask
 // This is an array of EmberAfAttributeMetadata structures.
-#define GENERATED_ATTRIBUTE_COUNT 218
+#define GENERATED_ATTRIBUTE_COUNT 219
 #define GENERATED_ATTRIBUTES { \
 \
   /* Endpoint: 0, Cluster: Groups (server) */ \
@@ -756,6 +756,7 @@
   /* Endpoint: 1, Cluster: Color Control (server) */ \
   { 0x00000000, ZAP_TYPE(INT8U), 1, 0, ZAP_SIMPLE_DEFAULT(0x00) }, /* current hue */  \
   { 0x00000001, ZAP_TYPE(INT8U), 1, 0, ZAP_SIMPLE_DEFAULT(0x00) }, /* current saturation */  \
+  { 0x00000002, ZAP_TYPE(INT16U), 2, 0, ZAP_SIMPLE_DEFAULT(0x0000) }, /* remaining time */  \
   { 0x00000003, ZAP_TYPE(INT16U), 2, 0, ZAP_SIMPLE_DEFAULT(0x616B) }, /* current x */  \
   { 0x00000004, ZAP_TYPE(INT16U), 2, 0, ZAP_SIMPLE_DEFAULT(0x607D) }, /* current y */  \
   { 0x00000007, ZAP_TYPE(INT16U), 2, 0, ZAP_SIMPLE_DEFAULT(0x00FA) }, /* color temperature */  \
@@ -1351,8 +1352,8 @@ const EmberAfGenericClusterFunction chipFuncArrayColorControlServer[] = {\
       /* Endpoint: 1, Cluster: Color Control (server) */ \
       .clusterId = 0x00000300,  \
       .attributes = ZAP_ATTRIBUTE_INDEX(209), \
-      .attributeCount = 9, \
-      .clusterSize = 15, \
+      .attributeCount = 10, \
+      .clusterSize = 17, \
       .mask = ZAP_CLUSTER_MASK(SERVER) | ZAP_CLUSTER_MASK(INIT_FUNCTION), \
       .functions = chipFuncArrayColorControlServer, \
       .acceptedCommandList = ZAP_GENERATED_COMMANDS_INDEX( 113 ) ,\
@@ -1369,7 +1370,7 @@ const EmberAfGenericClusterFunction chipFuncArrayColorControlServer[] = {\
 // This is an array of EmberAfEndpointType structures.
 #define GENERATED_ENDPOINT_TYPES { \
   { ZAP_CLUSTER_INDEX(0), 22, 523 }, \
-  { ZAP_CLUSTER_INDEX(22), 11, 39 }, \
+  { ZAP_CLUSTER_INDEX(22), 11, 41 }, \
 }
 
 
@@ -1384,7 +1385,7 @@ static_assert(ATTRIBUTE_LARGEST <= CHIP_CONFIG_MAX_ATTRIBUTE_STORE_ELEMENT_SIZE,
 #define ATTRIBUTE_SINGLETONS_SIZE (37)
 
 // Total size of attribute storage
-#define ATTRIBUTE_MAX_SIZE (562)
+#define ATTRIBUTE_MAX_SIZE (564)
 
 // Number of fixed endpoints
 #define FIXED_ENDPOINT_COUNT (2)
