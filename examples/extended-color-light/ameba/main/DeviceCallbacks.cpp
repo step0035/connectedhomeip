@@ -25,6 +25,7 @@
 #include "DeviceCallbacks.h"
 
 #include "CHIPDeviceManager.h"
+#include "ExtendedColorLightManager.h"
 #include <app-common/zap-generated/attribute-id.h>
 #include <app-common/zap-generated/cluster-id.h>
 #include <app/CommandHandler.h>
@@ -32,6 +33,7 @@
 #include <app/util/af.h>
 #include <app/util/basic-types.h>
 #include <app/util/util.h>
+#include <app/util/attribute-storage-null-handling.h>
 #include <lib/dnssd/Advertiser.h>
 #include <support/CodeUtils.h>
 #include <support/logging/CHIPLogging.h>
@@ -40,6 +42,7 @@
 static const char * TAG = "app-devicecallbacks";
 
 using namespace ::chip;
+using namespace ::chip::app;
 using namespace ::chip::Inet;
 using namespace ::chip::System;
 using namespace ::chip::DeviceLayer;
@@ -115,6 +118,18 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
         OnIdentifyPostAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
+    case ZCL_ON_OFF_CLUSTER_ID:
+        OnOnOffPostAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
+    case ZCL_LEVEL_CONTROL_CLUSTER_ID:
+        OnLevelControlAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
+    case ZCL_COLOR_CONTROL_CLUSTER_ID:
+        OnColorControlAttributeChangeCallback(endpointId, attributeId, value);
+        break;
+
     default:
         ChipLogProgress(Zcl, "Unknown cluster ID: " ChipLogFormatMEI, ChipLogValueMEI(clusterId));
         break;
@@ -147,6 +162,88 @@ void DeviceCallbacks::OnIdentifyPostAttributeChangeCallback(EndpointId endpointI
     DeviceLayer::SystemLayer().CancelTimer(IdentifyTimerHandler, this);
     DeviceLayer::SystemLayer().StartTimer(Clock::Milliseconds32(kIdentifyTimerDelayMS), IdentifyTimerHandler, this);
 
+exit:
+    return;
+}
+
+void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    VerifyOrExit(attributeId == ZCL_ON_OFF_ATTRIBUTE_ID,
+                 ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1 || endpointId == 2,
+                 ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+exit:
+    return;
+}
+
+
+void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    bool onOffState    = mEndpointOnOffState[endpointId - 1];
+    uint8_t brightness = onOffState ? *value : 0;
+
+    VerifyOrExit(attributeId == ZCL_CURRENT_LEVEL_ATTRIBUTE_ID,
+            ChipLogError(DeviceLayer, "Unhandled Attribute ID: '0x%04x", attributeId));
+    VerifyOrExit(endpointId == 1,
+            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+
+    // At this point we can assume that value points to a bool value.
+    ChipLogProgress(DeviceLayer, "Calling SetBrightness with value: %d", brightness);
+    //rgbwLED.SetBrightness(brightness);
+
+exit:
+    return;
+}
+
+void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+{
+    VerifyOrExit(
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID ||
+            attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID,
+            ChipLogError(DeviceLayer, "Unhandled AttributeId ID: '0x%04x", attributeId)
+            );
+    VerifyOrExit(
+            endpointId == 1,
+            ChipLogError(DeviceLayer, "Unexpected EndPoint ID: `0x%02x'", endpointId)
+            );
+
+    if (attributeId  == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID || attributeId == ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
+        {
+            uint8_t hue, saturation;
+            if (attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID)
+            {
+                hue = *value;
+                emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_SATURATION_ATTRIBUTE_ID,
+                                           &saturation, sizeof(uint8_t));
+            }
+            else
+            {
+                saturation = *value;
+                emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID, &hue,
+                                           sizeof(uint8_t));
+            }
+            ChipLogProgress(DeviceLayer, "Calling SetColor with hue:%d, saturation:%d", hue, saturation);
+            //rgbwLED.SetColor(hue, saturation);
+        }
+    }
+
+    if (attributeId == ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID)
+    {
+        if (endpointId == 1)
+        {
+            using Traits = NumericAttributeTraits<uint16_t>;
+            Traits::StorageType temp;
+            uint8_t * readable   = Traits::ToAttributeStoreRepresentation(temp);
+            emberAfReadServerAttribute(endpointId, ZCL_COLOR_CONTROL_CLUSTER_ID, ZCL_COLOR_CONTROL_COLOR_TEMPERATURE_ATTRIBUTE_ID, readable, sizeof(temp));
+
+            uint16_t colortemp;
+            colortemp = Traits::StorageToWorking(temp);
+            //rgbwLED.SetColorTemp(colortemp);
+        }
+    }
 exit:
     return;
 }

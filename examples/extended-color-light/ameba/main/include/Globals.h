@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "ExtendedColorLightManager.h"
 #include "LEDWidget.h"
 
+extern ExtendedColorLightManager extendedcolorlight1;
 extern LEDWidget statusLED1;

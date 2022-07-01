@@ -1,6 +1,7 @@
 /*
  *
  *    Copyright (c) 2020 Project CHIP Authors
+ *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,7 +16,17 @@
  *    limitations under the License.
  */
 
-#include "Globals.h"
+#pragma once
 
-ExtendedColorLightManager extendedcolorlight1;
-LEDWidget statusLED1;
+#include <platform_stdlib.h>
+
+class ExtendedColorLightManager
+{
+public:
+    void Init(uint8_t test_val);
+    void Set(uint8_t state);
+
+private:
+    bool mState;
+    void DoSet(uint8_t state);
+};
