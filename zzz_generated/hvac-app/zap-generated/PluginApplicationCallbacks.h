@@ -48,6 +48,7 @@
     MatterScenesPluginClientInitCallback();                                                                                        \
     MatterScenesPluginServerInitCallback();                                                                                        \
     MatterSoftwareDiagnosticsPluginServerInitCallback();                                                                           \
+    MatterThermostatPluginClientInitCallback();                                                                                    \
     MatterThermostatPluginServerInitCallback();                                                                                    \
     MatterThreadNetworkDiagnosticsPluginServerInitCallback();                                                                      \
     MatterTimeFormatLocalizationPluginServerInitCallback();                                                                        \

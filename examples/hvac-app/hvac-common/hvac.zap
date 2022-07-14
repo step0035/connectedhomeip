@@ -8845,7 +8845,7 @@
           "mfgCode": null,
           "define": "THERMOSTAT_CLUSTER",
           "side": "client",
-          "enabled": 0,
+          "enabled": 1,
           "commands": [
             {
               "name": "SetpointRaiseLower",
@@ -8853,7 +8853,39 @@
               "mfgCode": null,
               "source": "client",
               "incoming": 1,
-              "outgoing": 0
+              "outgoing": 1
+            },
+            {
+              "name": "SetWeeklySchedule",
+              "code": 1,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 0,
+              "outgoing": 1
+            },
+            {
+              "name": "GetWeeklySchedule",
+              "code": 2,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 0,
+              "outgoing": 1
+            },
+            {
+              "name": "ClearWeeklySchedule",
+              "code": 3,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 0,
+              "outgoing": 1
+            },
+            {
+              "name": "GetRelayStatusLog",
+              "code": 4,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 0,
+              "outgoing": 1
             }
           ],
           "attributes": [
@@ -8863,7 +8895,7 @@
               "mfgCode": null,
               "side": "client",
               "type": "bitmap32",
-              "included": 0,
+              "included": 1,
               "storageOption": "RAM",
               "singleton": 0,
               "bounded": 0,
@@ -8897,8 +8929,25 @@
           "mfgCode": null,
           "define": "THERMOSTAT_CLUSTER",
           "side": "server",
-          "enabled": 1,
-          "commands": [],
+          "enabled": 0,
+          "commands": [
+            {
+              "name": "GetWeeklyScheduleResponse",
+              "code": 0,
+              "mfgCode": null,
+              "source": "server",
+              "incoming": 1,
+              "outgoing": 0
+            },
+            {
+              "name": "GetRelayStatusLogResponse",
+              "code": 1,
+              "mfgCode": null,
+              "source": "server",
+              "incoming": 1,
+              "outgoing": 0
+            }
+          ],
           "attributes": [
             {
               "name": "local temperature",
@@ -10801,6 +10850,38 @@
               "source": "client",
               "incoming": 1,
               "outgoing": 0
+            },
+            {
+              "name": "SetWeeklySchedule",
+              "code": 1,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 1,
+              "outgoing": 0
+            },
+            {
+              "name": "GetWeeklySchedule",
+              "code": 2,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 1,
+              "outgoing": 0
+            },
+            {
+              "name": "ClearWeeklySchedule",
+              "code": 3,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 1,
+              "outgoing": 0
+            },
+            {
+              "name": "GetRelayStatusLog",
+              "code": 4,
+              "mfgCode": null,
+              "source": "client",
+              "incoming": 1,
+              "outgoing": 0
             }
           ],
           "attributes": [
@@ -10845,7 +10926,24 @@
           "define": "THERMOSTAT_CLUSTER",
           "side": "server",
           "enabled": 1,
-          "commands": [],
+          "commands": [
+            {
+              "name": "GetWeeklyScheduleResponse",
+              "code": 0,
+              "mfgCode": null,
+              "source": "server",
+              "incoming": 0,
+              "outgoing": 1
+            },
+            {
+              "name": "GetRelayStatusLogResponse",
+              "code": 1,
+              "mfgCode": null,
+              "source": "server",
+              "incoming": 0,
+              "outgoing": 1
+            }
+          ],
           "attributes": [
             {
               "name": "local temperature",
@@ -13766,7 +13864,7 @@
               "side": "server",
               "type": "array",
               "included": 1,
-              "storageOption": "RAM",
+              "storageOption": "External",
               "singleton": 0,
               "bounded": 0,
               "defaultValue": "",
@@ -13782,7 +13880,7 @@
               "side": "server",
               "type": "array",
               "included": 1,
-              "storageOption": "RAM",
+              "storageOption": "External",
               "singleton": 0,
               "bounded": 0,
               "defaultValue": "",
@@ -13798,7 +13896,7 @@
               "side": "server",
               "type": "array",
               "included": 1,
-              "storageOption": "RAM",
+              "storageOption": "External",
               "singleton": 0,
               "bounded": 0,
               "defaultValue": "",

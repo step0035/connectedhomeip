@@ -51,5 +51,12 @@ public:
     ~ScenesCluster() {}
 };
 
+class DLL_EXPORT ThermostatCluster : public ClusterBase
+{
+public:
+    ThermostatCluster() : ClusterBase(app::Clusters::Thermostat::Id) {}
+    ~ThermostatCluster() {}
+};
+
 } // namespace Controller
 } // namespace chip

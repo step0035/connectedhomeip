@@ -1304,6 +1304,113 @@ server cluster SoftwareDiagnostics = 52 {
   command ResetWatermarks(): DefaultSuccess = 0;
 }
 
+client cluster Thermostat = 513 {
+  enum SetpointAdjustMode : ENUM8 {
+    kHeatSetpoint = 0;
+    kCoolSetpoint = 1;
+    kHeatAndCoolSetpoints = 2;
+  }
+
+  enum ThermostatControlSequence : ENUM8 {
+    kCoolingOnly = 0;
+    kCoolingWithReheat = 1;
+    kHeatingOnly = 2;
+    kHeatingWithReheat = 3;
+    kCoolingAndHeating = 4;
+    kCoolingAndHeatingWithReheat = 5;
+  }
+
+  enum ThermostatRunningMode : ENUM8 {
+    kOff = 0;
+    kCool = 3;
+    kHeat = 4;
+  }
+
+  enum ThermostatSystemMode : ENUM8 {
+    kOff = 0;
+    kAuto = 1;
+    kCool = 3;
+    kHeat = 4;
+    kEmergencyHeating = 5;
+    kPrecooling = 6;
+    kFanOnly = 7;
+  }
+
+  bitmap DayOfWeek : BITMAP8 {
+    kSunday = 0x1;
+    kMonday = 0x2;
+    kTuesday = 0x4;
+    kWednesday = 0x8;
+    kThursday = 0x10;
+    kFriday = 0x20;
+    kSaturday = 0x40;
+    kAwayOrVacation = 0x80;
+  }
+
+  bitmap ModeForSequence : BITMAP8 {
+    kHeatSetpointFieldPresent = 0x1;
+    kCoolSetpointFieldPresent = 0x2;
+  }
+
+  bitmap ThermostatFeature : BITMAP32 {
+    kHeating = 0x1;
+    kCooling = 0x2;
+    kOccupancy = 0x4;
+    kSchedule = 0x8;
+    kSetback = 0x10;
+    kAutomode = 0x20;
+  }
+
+  readonly attribute int16s localTemperature = 0;
+  attribute int16s occupiedCoolingSetpoint = 17;
+  attribute int16s occupiedHeatingSetpoint = 18;
+  attribute access(write: manage) ThermostatControlSequence controlSequenceOfOperation = 27;
+  attribute access(write: manage) enum8 systemMode = 28;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute int16u clusterRevision = 65533;
+
+  request struct SetpointRaiseLowerRequest {
+    SetpointAdjustMode mode = 0;
+    INT8S amount = 1;
+  }
+
+  request struct SetWeeklyScheduleRequest {
+    ENUM8 numberOfTransitionsForSequence = 0;
+    DayOfWeek dayOfWeekForSequence = 1;
+    ModeForSequence modeForSequence = 2;
+    INT8U payload[] = 3;
+  }
+
+  request struct GetWeeklyScheduleRequest {
+    DayOfWeek daysToReturn = 0;
+    ModeForSequence modeToReturn = 1;
+  }
+
+  response struct GetWeeklyScheduleResponse = 0 {
+    ENUM8 numberOfTransitionsForSequence = 0;
+    DayOfWeek dayOfWeekForSequence = 1;
+    ModeForSequence modeForSequence = 2;
+    INT8U payload[] = 3;
+  }
+
+  response struct GetRelayStatusLogResponse = 1 {
+    INT16U timeOfDay = 0;
+    BITMAP16 relayStatus = 1;
+    INT16S localTemperature = 2;
+    INT8U humidityInPercentage = 3;
+    INT16S setpoint = 4;
+    INT16U unreadEntries = 5;
+  }
+
+  command SetpointRaiseLower(SetpointRaiseLowerRequest): DefaultSuccess = 0;
+  command access(invoke: manage) SetWeeklySchedule(SetWeeklyScheduleRequest): DefaultSuccess = 1;
+  command GetWeeklySchedule(GetWeeklyScheduleRequest): GetWeeklyScheduleResponse = 2;
+  command access(invoke: manage) ClearWeeklySchedule(): DefaultSuccess = 3;
+  command GetRelayStatusLog(): GetRelayStatusLogResponse = 4;
+}
+
 server cluster Thermostat = 513 {
   enum SetpointAdjustMode : ENUM8 {
     kHeatSetpoint = 0;
@@ -1376,7 +1483,39 @@ server cluster Thermostat = 513 {
     INT8S amount = 1;
   }
 
+  request struct SetWeeklyScheduleRequest {
+    ENUM8 numberOfTransitionsForSequence = 0;
+    DayOfWeek dayOfWeekForSequence = 1;
+    ModeForSequence modeForSequence = 2;
+    INT8U payload[] = 3;
+  }
+
+  request struct GetWeeklyScheduleRequest {
+    DayOfWeek daysToReturn = 0;
+    ModeForSequence modeToReturn = 1;
+  }
+
+  response struct GetWeeklyScheduleResponse = 0 {
+    ENUM8 numberOfTransitionsForSequence = 0;
+    DayOfWeek dayOfWeekForSequence = 1;
+    ModeForSequence modeForSequence = 2;
+    INT8U payload[] = 3;
+  }
+
+  response struct GetRelayStatusLogResponse = 1 {
+    INT16U timeOfDay = 0;
+    BITMAP16 relayStatus = 1;
+    INT16S localTemperature = 2;
+    INT8U humidityInPercentage = 3;
+    INT16S setpoint = 4;
+    INT16U unreadEntries = 5;
+  }
+
   command SetpointRaiseLower(SetpointRaiseLowerRequest): DefaultSuccess = 0;
+  command access(invoke: manage) SetWeeklySchedule(SetWeeklyScheduleRequest): DefaultSuccess = 1;
+  command GetWeeklySchedule(GetWeeklyScheduleRequest): GetWeeklyScheduleResponse = 2;
+  command access(invoke: manage) ClearWeeklySchedule(): DefaultSuccess = 3;
+  command GetRelayStatusLog(): GetRelayStatusLogResponse = 4;
 }
 
 server cluster ThreadNetworkDiagnostics = 53 {
@@ -1679,7 +1818,7 @@ endpoint 1 {
   server  cluster Groups;
   server  cluster Identify;
   server  cluster OnOff;
-  server  cluster Thermostat;
+  binding cluster Thermostat;
 }
 
 endpoint 2 {

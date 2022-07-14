@@ -64,3 +64,17 @@ void ScenesClusterAttributeListListAttributeFilter(chip::TLV::TLVReader * data, 
                                                    chip::Callback::Cancelable * onFailureCallback);
 typedef void (*ScenesAttributeListListAttributeCallback)(void * context,
                                                          const chip::app::DataModel::DecodableList<chip::AttributeId> & data);
+void ThermostatClusterGeneratedCommandListListAttributeFilter(chip::TLV::TLVReader * data,
+                                                              chip::Callback::Cancelable * onSuccessCallback,
+                                                              chip::Callback::Cancelable * onFailureCallback);
+typedef void (*ThermostatGeneratedCommandListListAttributeCallback)(
+    void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
+void ThermostatClusterAcceptedCommandListListAttributeFilter(chip::TLV::TLVReader * data,
+                                                             chip::Callback::Cancelable * onSuccessCallback,
+                                                             chip::Callback::Cancelable * onFailureCallback);
+typedef void (*ThermostatAcceptedCommandListListAttributeCallback)(
+    void * context, const chip::app::DataModel::DecodableList<chip::CommandId> & data);
+void ThermostatClusterAttributeListListAttributeFilter(chip::TLV::TLVReader * data, chip::Callback::Cancelable * onSuccessCallback,
+                                                       chip::Callback::Cancelable * onFailureCallback);
+typedef void (*ThermostatAttributeListListAttributeCallback)(void * context,
+                                                             const chip::app::DataModel::DecodableList<chip::AttributeId> & data);

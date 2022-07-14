@@ -186,6 +186,8 @@
     5, /* Cluster: Scenes, Command: RemoveScene, Privilege: manage */ \
     5, /* Cluster: Scenes, Command: RemoveAllScenes, Privilege: manage */ \
     5, /* Cluster: Scenes, Command: StoreScene, Privilege: manage */ \
+    513, /* Cluster: Thermostat, Command: SetWeeklySchedule, Privilege: manage */ \
+    513, /* Cluster: Thermostat, Command: ClearWeeklySchedule, Privilege: manage */ \
 }
 
 // Parallel array data (cluster, *command*, privilege) for invoke command
@@ -226,6 +228,8 @@
     2, /* Cluster: Scenes, Command: RemoveScene, Privilege: manage */ \
     3, /* Cluster: Scenes, Command: RemoveAllScenes, Privilege: manage */ \
     4, /* Cluster: Scenes, Command: StoreScene, Privilege: manage */ \
+    1, /* Cluster: Thermostat, Command: SetWeeklySchedule, Privilege: manage */ \
+    3, /* Cluster: Thermostat, Command: ClearWeeklySchedule, Privilege: manage */ \
 }
 
 // Parallel array data (cluster, command, *privilege*) for invoke command
@@ -266,6 +270,8 @@
     kMatterAccessPrivilegeManage, /* Cluster: Scenes, Command: RemoveScene, Privilege: manage */ \
     kMatterAccessPrivilegeManage, /* Cluster: Scenes, Command: RemoveAllScenes, Privilege: manage */ \
     kMatterAccessPrivilegeManage, /* Cluster: Scenes, Command: StoreScene, Privilege: manage */ \
+    kMatterAccessPrivilegeManage, /* Cluster: Thermostat, Command: SetWeeklySchedule, Privilege: manage */ \
+    kMatterAccessPrivilegeManage, /* Cluster: Thermostat, Command: ClearWeeklySchedule, Privilege: manage */ \
 }
 
 ////////////////////////////////////////////////////////////////////////////////
