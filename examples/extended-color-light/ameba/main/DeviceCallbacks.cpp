@@ -38,6 +38,8 @@
 #include <support/CodeUtils.h>
 #include <support/logging/CHIPLogging.h>
 #include <support/logging/Constants.h>
+#include "Globals.h"
+#include "LEDWidget.h"
 
 static const char * TAG = "app-devicecallbacks";
 
@@ -123,11 +125,11 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
         break;
 
     case ZCL_LEVEL_CONTROL_CLUSTER_ID:
-        OnLevelControlAttributeChangeCallback(endpointId, attributeId, value);
+        OnLevelControlPostAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
     case ZCL_COLOR_CONTROL_CLUSTER_ID:
-        OnColorControlAttributeChangeCallback(endpointId, attributeId, value);
+        OnColorControlPostAttributeChangeCallback(endpointId, attributeId, value);
         break;
 
     default:
@@ -172,12 +174,15 @@ void DeviceCallbacks::OnOnOffPostAttributeChangeCallback(EndpointId endpointId, 
                  ChipLogError(DeviceLayer, TAG, "Unhandled Attribute ID: '0x%04x", attributeId));
     VerifyOrExit(endpointId == 1 || endpointId == 2,
                  ChipLogError(DeviceLayer, TAG, "Unexpected EndPoint ID: `0x%02x'", endpointId));
+
+    statusLED1.Set(*value);
+
 exit:
     return;
 }
 
 
-void DeviceCallbacks::OnLevelControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+void DeviceCallbacks::OnLevelControlPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
     bool onOffState    = mEndpointOnOffState[endpointId - 1];
     uint8_t brightness = onOffState ? *value : 0;
@@ -195,7 +200,7 @@ exit:
     return;
 }
 
-void DeviceCallbacks::OnColorControlAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
+void DeviceCallbacks::OnColorControlPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 {
     VerifyOrExit(
             attributeId == ZCL_COLOR_CONTROL_CURRENT_HUE_ATTRIBUTE_ID ||
