@@ -137,7 +137,7 @@ CHIP_ERROR AmebaWiFiDriver::ConnectWiFiNetwork(const char * ssid, uint8_t ssidLe
     memset(&wifiConfig, 0, sizeof(wifiConfig));
     memcpy(wifiConfig.ssid, ssid, ssidLen + 1);
     memcpy(wifiConfig.password, key, keyLen + 1);
-    wifiConfig.mode = RTW_MODE_STA;
+    wifiConfig.mode = wifi_mode;
 
     // Configure the WiFi interface.
     int err = CHIP_SetWiFiConfig(&wifiConfig);

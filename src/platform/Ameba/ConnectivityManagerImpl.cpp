@@ -44,6 +44,11 @@
 
 #include <chip_porting.h>
 #include <lwip_netconf.h>
+#include <wifi_conf.h>
+
+extern uint32_t rtw_join_status;
+#define JOIN_CONNECTING             (uint32_t)(1 << 10)
+
 
 using namespace ::chip;
 using namespace ::chip::Inet;
@@ -77,12 +82,14 @@ CHIP_ERROR ConnectivityManagerImpl::_Init()
     wifi_reg_event_handler(WIFI_EVENT_CONNECT, ConnectivityManagerImpl::RtkWiFiStationConnectedHandler, NULL);
     wifi_reg_event_handler(WIFI_EVENT_DISCONNECT, ConnectivityManagerImpl::RtkWiFiStationDisconnectedHandler, NULL);
 
-    // Ensure that station mode is enabled.
-    wifi_on(RTW_MODE_STA);
+    if(!( wifi_is_up(RTW_MODE_STA) || wifi_is_up(RTW_MODE_STA_AP )))   {
+        ChipLogProgress(DeviceLayer, "WiFi is off, please wifi_on");
+        // Ensure that station mode is enabled.
+        //wifi_on(RTW_MODE_STA);
 
-    // Ensure that station mode is enabled in the WiFi layer.
-    wifi_set_mode(RTW_MODE_STA);
-    ;
+        // Ensure that station mode is enabled in the WiFi layer.
+        //wifi_set_mode(RTW_MODE_STA);
+    }
 
     // If there is no persistent station provision...
     if (!IsWiFiStationProvisioned())
@@ -102,7 +109,7 @@ CHIP_ERROR ConnectivityManagerImpl::_Init()
             memset(&wifiConfig, 0, sizeof(wifiConfig));
             memcpy(wifiConfig.ssid, CONFIG_DEFAULT_WIFI_SSID, strlen(CONFIG_DEFAULT_WIFI_SSID) + 1);
             memcpy(wifiConfig.password, CONFIG_DEFAULT_WIFI_PASSWORD, strlen(CONFIG_DEFAULT_WIFI_PASSWORD) + 1);
-            wifiConfig.mode = RTW_MODE_STA;
+            wifiConfig.mode = wifi_mode;
 
             // Configure the WiFi interface.
             int err = CHIP_SetWiFiConfig(&wifiConfig);
@@ -130,7 +137,6 @@ CHIP_ERROR ConnectivityManagerImpl::_Init()
     ReturnErrorOnFailure(DeviceLayer::SystemLayer().ScheduleWork(DriveAPState, NULL));
 
 #endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI
-
     return CHIP_NO_ERROR;
 }
 
@@ -149,8 +155,11 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const ChipDeviceEvent * event)
         {
             ChangeWiFiStationState(kWiFiStationState_Connecting_Succeeded);
         }
+
+        if (rtw_join_status & JOIN_CONNECTING)
+            DHCPProcess();
+
         DriveStationState();
-        DHCPProcess();
     }
     if (event->Type == DeviceEventType::kRtkWiFiStationDisconnectedEvent)
     {
@@ -174,7 +183,7 @@ ConnectivityManager::WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMod
 {
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
-        mWiFiStationMode = (wifi_mode == RTW_MODE_STA) ? kWiFiStationMode_Enabled : kWiFiStationMode_Disabled;
+        mWiFiStationMode = (wifi_mode == RTW_MODE_STA || wifi_mode == RTW_MODE_STA_AP) ? kWiFiStationMode_Enabled : kWiFiStationMode_Disabled;
     }
     return mWiFiStationMode;
 }
@@ -476,11 +485,9 @@ void ConnectivityManagerImpl::DriveStationState()
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
         // Ensure that the WiFi layer is started.
-        wifi_on(RTW_MODE_STA);
-
         // Ensure that station mode is enabled in the WiFi layer.
-        wifi_set_mode(RTW_MODE_STA);
-        ;
+        if(!( wifi_is_up(RTW_MODE_STA) || wifi_is_up(RTW_MODE_STA_AP )))
+            ChipLogProgress(DeviceLayer, "WiFi is off, please wifi_on");
     }
 
     // Determine if the WiFi layer thinks the station interface is currently connected.
@@ -553,6 +560,7 @@ void ConnectivityManagerImpl::DriveStationState()
                 ChipLogProgress(DeviceLayer, "Attempting to connect WiFi station interface");
                 rtw_wifi_setting_t wifi_info;
                 CHIP_GetWiFiConfig(&wifi_info);
+                //wifi_set_autoreconnect(1);
                 wifi_connect((char *) wifi_info.ssid, RTW_SECURITY_WPA_WPA2_MIXED, (char *) wifi_info.password,
                              strlen((const char *) wifi_info.ssid), strlen((const char *) wifi_info.password), 0, NULL);
                 ChangeWiFiStationState(kWiFiStationState_Connecting);
