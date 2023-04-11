@@ -197,3 +197,51 @@ CHIP_ERROR AmebaUtils::SetCurrentProvisionedNetwork()
 exit:
     return err;
 }
+
+CHIP_ERROR MapError(int32_t error, AmebaErrorType type)
+{
+    if (type == AmebaErrorType::kDctError)
+    {
+        return AmebaDctMapError(error);
+    }
+    if (type == AmebaErrorType::kFlashError)
+    {
+        return AmebaFlashMapError(error);
+    }
+    if (type == AmebaErrorType::kWiFiError)
+    {
+        return AmebaWiFiMapError(error);
+    }
+}
+
+CHIP_ERROR AmebaDctMapError(int32_t error)
+{
+    if (error == DCT_SUCCESS)
+        return CHIP_NO_ERROR;
+    if (error == DCT_ERR_NO_MEMORY)
+        return CHIP_ERROR_NO_MEMORY;
+    if (error == DCT_ERR_NOT_FIND)
+        return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
+    if (error == DCT_ERR_SIZE_OVER)
+        return CHIP_ERROR_INVALID_ARGUMENT;
+    if (error == DCT_ERR_MODULE_BUSY)
+        return CHIP_ERROR_BUSY;
+
+    return CHIP_ERROR_INTERNAL;
+}
+
+CHIP_ERROR AmebaFlashMapError(int32_t error)
+{
+    if (error == 1)
+        return CHIP_NO_ERROR;
+
+    return CHIP_ERROR_INTERNAL;
+}
+
+CHIP_ERROR AmebaWiFiMapError(int32_t error)
+{
+    if (error == RTW_SUCCESS)
+        return CHIP_NO_ERROR;
+    
+    return CHIP_ERROR_INTERNAL;
+}
