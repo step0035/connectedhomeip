@@ -40,9 +40,9 @@ constexpr char kWiFiCredentialsKeyName[] = "wifi-pass";
 
 CHIP_ERROR AmebaUtils::StartWiFi(void)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
     // Ensure that the WiFi layer is started.
-    matter_wifi_on(RTW_MODE_STA);
+    int32_t error = matter_wifi_on(RTW_MODE_STA);
+    CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
 
@@ -60,22 +60,22 @@ bool AmebaUtils::IsStationProvisioned(void)
 
 CHIP_ERROR AmebaUtils::IsStationConnected(bool & connected)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
-    connected      = (matter_wifi_is_connected_to_ap() == RTW_SUCCESS) ? 1 : 0;
+    int32_t error = matter_wifi_is_connected_to_ap();
+    CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
 
 CHIP_ERROR AmebaUtils::EnableStationMode(void)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
     // Ensure that station mode is enabled in the WiFi layer.
-    matter_wifi_set_mode(RTW_MODE_STA);
+    int32_t error = matter_wifi_set_mode(RTW_MODE_STA);
+    CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
 
 CHIP_ERROR AmebaUtils::SetWiFiConfig(rtw_wifi_config_t * config)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
+    CHIP_ERROR err;
     // don't store if ssid is null
     if (config->ssid[0] == 0)
     {
@@ -95,7 +95,7 @@ exit:
 
 CHIP_ERROR AmebaUtils::GetWiFiConfig(rtw_wifi_config_t * config)
 {
-    CHIP_ERROR err        = CHIP_NO_ERROR;
+    CHIP_ERROR err;
     size_t ssidLen        = 0;
     size_t credentialsLen = 0;
 
@@ -117,7 +117,7 @@ exit:
 CHIP_ERROR AmebaUtils::ClearWiFiConfig()
 {
     /* Clear Wi-Fi Configurations in Storage */
-    CHIP_ERROR err = CHIP_NO_ERROR;
+    CHIP_ERROR err;
     err            = PersistedStorage::KeyValueStoreMgr().Delete(kWiFiSSIDKeyName);
     SuccessOrExit(err);
 
@@ -130,9 +130,9 @@ exit:
 
 CHIP_ERROR AmebaUtils::WiFiDisconnect(void)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
-    ChipLogProgress(DeviceLayer, "matter_wifi_disconnect");
-    err = (matter_wifi_disconnect() == RTW_SUCCESS) ? CHIP_NO_ERROR : CHIP_ERROR_INTERNAL;
+    ChipLogProgress(DeviceLayer, "Disconnecting WiFi");
+    int32_t err = matter_wifi_disconnect();
+    CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
 
@@ -198,23 +198,23 @@ exit:
     return err;
 }
 
-CHIP_ERROR MapError(int32_t error, AmebaErrorType type)
+CHIP_ERROR AmebaUtils::MapError(int32_t error, AmebaErrorType type)
 {
     if (type == AmebaErrorType::kDctError)
     {
-        return AmebaDctMapError(error);
+        return MapDctError(error);
     }
     if (type == AmebaErrorType::kFlashError)
     {
-        return AmebaFlashMapError(error);
+        return MapFlashError(error);
     }
     if (type == AmebaErrorType::kWiFiError)
     {
-        return AmebaWiFiMapError(error);
+        return MapWiFiError(error);
     }
 }
 
-CHIP_ERROR AmebaDctMapError(int32_t error)
+CHIP_ERROR AmebaUtils::MapDctError(int32_t error)
 {
     if (error == DCT_SUCCESS)
         return CHIP_NO_ERROR;
@@ -230,7 +230,7 @@ CHIP_ERROR AmebaDctMapError(int32_t error)
     return CHIP_ERROR_INTERNAL;
 }
 
-CHIP_ERROR AmebaFlashMapError(int32_t error)
+CHIP_ERROR AmebaUtils::MapFlashError(int32_t error)
 {
     if (error == 1)
         return CHIP_NO_ERROR;
@@ -238,7 +238,7 @@ CHIP_ERROR AmebaFlashMapError(int32_t error)
     return CHIP_ERROR_INTERNAL;
 }
 
-CHIP_ERROR AmebaWiFiMapError(int32_t error)
+CHIP_ERROR AmebaUtils::MapWiFiError(int32_t error)
 {
     if (error == RTW_SUCCESS)
         return CHIP_NO_ERROR;

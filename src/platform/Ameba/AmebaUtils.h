@@ -51,9 +51,9 @@ public:
     static CHIP_ERROR MapError(int32_t error, AmebaErrorType type);
 
 private:
-    static CHIP_ERROR AmebaDctMapError(int32_t error);
-    static CHIP_ERROR AmebaFlashMapError(int32_t error);
-    static CHIP_ERROR AmebaWiFiMapError(int32_t error);
+    static CHIP_ERROR MapDctError(int32_t error);
+    static CHIP_ERROR MapFlashError(int32_t error);
+    static CHIP_ERROR MapWiFiError(int32_t error);
 };
 
 } // namespace Internal
