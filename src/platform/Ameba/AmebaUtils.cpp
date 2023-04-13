@@ -138,35 +138,33 @@ CHIP_ERROR AmebaUtils::WiFiDisconnect(void)
 
 CHIP_ERROR AmebaUtils::WiFiConnectProvisionedNetwork(void)
 {
-    CHIP_ERROR err             = CHIP_NO_ERROR;
     rtw_wifi_config_t * config = (rtw_wifi_config_t *) pvPortMalloc(sizeof(rtw_wifi_config_t));
     memset(config, 0, sizeof(rtw_wifi_config_t));
     GetWiFiConfig(config);
     ChipLogProgress(DeviceLayer, "Connecting to AP : [%s]", (char *) config->ssid);
-    int ameba_err = matter_wifi_connect((char *) config->ssid, RTW_SECURITY_WPA_WPA2_MIXED, (char *) config->password,
+    int32_t error = matter_wifi_connect((char *) config->ssid, RTW_SECURITY_WPA_WPA2_MIXED, (char *) config->password,
                                         strlen((const char *) config->ssid), strlen((const char *) config->password), 0, nullptr);
+    CHIP_ERROR err =  MapError(error, AmebaErrorType::kWiFiError);
 
     vPortFree(config);
-    err = (ameba_err == RTW_SUCCESS) ? CHIP_NO_ERROR : CHIP_ERROR_INTERNAL;
     return err;
 }
 
 CHIP_ERROR AmebaUtils::WiFiConnect(const char * ssid, const char * password)
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
     ChipLogProgress(DeviceLayer, "Connecting to AP : [%s]", (char *) ssid);
-    int ameba_err = matter_wifi_connect((char *) ssid, RTW_SECURITY_WPA_WPA2_MIXED, (char *) password, strlen(ssid),
+    int32_t error = matter_wifi_connect((char *) ssid, RTW_SECURITY_WPA_WPA2_MIXED, (char *) password, strlen(ssid),
                                         strlen(password), 0, nullptr);
-    err           = (ameba_err == RTW_SUCCESS) ? CHIP_NO_ERROR : CHIP_ERROR_INTERNAL;
+    CHIP_ERROR err =  MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
 
 CHIP_ERROR AmebaUtils::SetCurrentProvisionedNetwork()
 {
-    CHIP_ERROR err = CHIP_NO_ERROR;
     rtw_wifi_setting_t pSetting;
-    int ret = matter_get_sta_wifi_info(&pSetting);
-    if (ret < 0)
+    int32_t error = matter_get_sta_wifi_info(&pSetting);
+    CHIP_ERROR err =  MapError(error, AmebaErrorType::kWiFiError);
+    if (err != CHIP_NO_ERROR)
     {
         ChipLogProgress(DeviceLayer, "STA No Wi-Fi Info");
         goto exit;
