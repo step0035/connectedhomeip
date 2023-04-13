@@ -282,20 +282,25 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiVersion(app::Clusters::WiFiNetwork
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiSecurityType(app::Clusters::WiFiNetworkDiagnostics::SecurityTypeEnum & securityType)
 {
+    CHIP_ERROR err;
+    int32_t error;
+
     using app::Clusters::WiFiNetworkDiagnostics::SecurityTypeEnum;
 
     unsigned int _auth_type;
-    unsigned short _security = 0;
+    unsigned short security = 0;
     rtw_wifi_setting_t setting;
 
-#ifdef CONFIG_PLATFORM_8721D
-    if (wext_get_enc_ext("wlan0", &_security, &setting.key_idx, setting.password) < 0)
+    error = matter_wifi_get_security_type("wlan0", &security, &setting.key_idx, setting.password);
+    err = AmebaUtils::MapError(error, AmebaErrorType::kWiFiError);
+    if (err != CHIP_NO_ERROR)
     {
         securityType = SecurityTypeEnum::kUnspecified;
     }
+#ifdef CONFIG_PLATFORM_8721D
     else
     {
-        switch (_security)
+        switch (security)
         {
         case IW_ENCODE_ALG_NONE:
             securityType = SecurityTypeEnum::kNone;
@@ -315,14 +320,9 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiSecurityType(app::Clusters::WiFiNe
         }
     }
 #else
-    wext_get_enc_ext("wlan0", &_security, &setting.key_idx, setting.password);
-    if (wext_get_auth_type("wlan0", &_auth_type) < 0)
-    {
-        securityType = SecurityTypeEnum::kUnspecified;
-    }
     else
     {
-        switch (_security)
+        switch (security)
         {
         case IW_ENCODE_ALG_NONE:
             securityType = SecurityTypeEnum::kNone;
@@ -351,30 +351,40 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiSecurityType(app::Clusters::WiFiNe
     }
 #endif
 
-    return CHIP_NO_ERROR;
+    return err;
 }
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiChannelNumber(uint16_t & channelNumber)
 {
+    CHIP_ERROR err;
+    int32_t error;
     unsigned char channel;
 
-    if (wext_get_channel("wlan0", &channel) < 0)
+    error = matter_wifi_get_wifi_channel_number("wlan0", &channel);
+    err = AmebaUtils::MapError(error, AmebaErrorType::kWiFiError);
+    if (err != CHIP_NO_ERROR)
         channelNumber = 0;
     else
         channelNumber = (uint16_t) channel;
 
-    return CHIP_NO_ERROR;
+    return err;
 }
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiRssi(int8_t & rssi)
 {
-    int _rssi = 0;
-    if (wifi_get_rssi(&_rssi) < 0)
-        rssi = 0;
-    else
-        rssi = _rssi;
+    CHIP_ERROR err;
+    int32_t error;
 
-    return CHIP_NO_ERROR;
+    error = matter_wifi_get_rssi(&rssi);
+    err = AmebaUtils::MapError(error, AmebaErrorType::kWiFiError);
+
+    if (err != CHIP_NO_ERROR)
+    {
+        // set rssi to 0 upon error
+        rssi = 0;
+    }
+
+    return err;
 }
 
 CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiBeaconLostCount(uint32_t & beaconLostCount)
