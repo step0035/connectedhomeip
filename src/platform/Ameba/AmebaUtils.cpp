@@ -131,7 +131,7 @@ exit:
 CHIP_ERROR AmebaUtils::WiFiDisconnect(void)
 {
     ChipLogProgress(DeviceLayer, "Disconnecting WiFi");
-    int32_t err = matter_wifi_disconnect();
+    int32_t error = matter_wifi_disconnect();
     CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
     return err;
 }
