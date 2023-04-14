@@ -43,7 +43,7 @@ CHIP_ERROR AmebaUtils::StartWiFi(void)
     // Ensure that the WiFi layer is started.
     int32_t error = matter_wifi_on(RTW_MODE_STA);
     CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
-    return err;
+    return CHIP_NO_ERROR; // will fail if wifi is already initialized, let it pass
 }
 
 CHIP_ERROR AmebaUtils::IsStationEnabled(bool & staEnabled)
@@ -210,6 +210,7 @@ CHIP_ERROR AmebaUtils::MapError(int32_t error, AmebaErrorType type)
     {
         return MapWiFiError(error);
     }
+    return CHIP_ERROR_INTERNAL;
 }
 
 CHIP_ERROR AmebaUtils::MapDctError(int32_t error)

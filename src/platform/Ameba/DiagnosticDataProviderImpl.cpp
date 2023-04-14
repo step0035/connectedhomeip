@@ -375,7 +375,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiRssi(int8_t & rssi)
     CHIP_ERROR err;
     int32_t error;
 
-    error = matter_wifi_get_rssi(&rssi);
+    error = matter_wifi_get_rssi((int *)&rssi);
     err = AmebaUtils::MapError(error, AmebaErrorType::kWiFiError);
 
     if (err != CHIP_NO_ERROR)

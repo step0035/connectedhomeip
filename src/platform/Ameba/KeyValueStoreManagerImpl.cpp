@@ -24,7 +24,10 @@
 #include "FreeRTOS.h"
 #include "chip_porting.h"
 #include <platform/KeyValueStoreManager.h>
+#include <platform/Ameba/AmebaUtils.h>
 #include <support/CodeUtils.h>
+
+using namespace chip::DeviceLayer::Internal;
 
 namespace chip {
 namespace DeviceLayer {
@@ -55,6 +58,7 @@ CHIP_ERROR KeyValueStoreManagerImpl::_Get(const char * key, void * value, size_t
     if (read_bytes_size)
     {
         error = getPref_bin_new(key, key, (uint8_t *) value, value_size, read_bytes_size);
+        err = AmebaUtils::MapError(error, AmebaErrorType::kDctError);
     }
     else
     {
@@ -97,6 +101,7 @@ CHIP_ERROR KeyValueStoreManagerImpl::_Put(const char * key, const void * value, 
     error = setPref_new(key, key, (uint8_t *) value, value_size);
     err = AmebaUtils::MapError(error, AmebaErrorType::kDctError);
 
+exit:
     return err;
 }
 
