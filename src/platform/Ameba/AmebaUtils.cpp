@@ -62,6 +62,7 @@ CHIP_ERROR AmebaUtils::IsStationConnected(bool & connected)
 {
     int32_t error = matter_wifi_is_connected_to_ap();
     CHIP_ERROR err = MapError(error, AmebaErrorType::kWiFiError);
+    connected = (err == CHIP_NO_ERROR) ? true : false;
     return err;
 }
 
