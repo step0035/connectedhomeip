@@ -257,7 +257,7 @@ CHIP_ERROR DiagnosticDataProviderImpl::GetWiFiBssId(MutableByteSpan & BssId)
     constexpr size_t bssIdSize = 6;
     VerifyOrReturnError(BssId.size() >= bssIdSize, CHIP_ERROR_BUFFER_TOO_SMALL);
 
-    error = matter_wifi_get_ap_bssid(ameba_bssid);
+    error = matter_wifi_get_ap_bssid(BssId.data());
     err = AmebaUtils::MapError(error, AmebaErrorType::kWiFiError);
 
     if (err != CHIP_NO_ERROR)
