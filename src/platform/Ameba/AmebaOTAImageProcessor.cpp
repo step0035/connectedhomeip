@@ -181,7 +181,7 @@ void AmebaOTAImageProcessor::HandleProcessBlock(intptr_t context)
 
     ByteSpan block       = imageProcessor->mBlock;
     CHIP_ERROR error     = imageProcessor->ProcessHeader(block); // process matter ota header
-    uint8_t remainHeader = 32 - matter_ota_get_header_size(); // size of ameba header received
+    uint8_t remainHeader = matter_ota_get_total_header_size() - matter_ota_get_current_header_size(); // size of ameba header received
     uint16_t writeLength = block.size(); // length of actual data to write to flash, excluding header
     uint8_t *writePointer = (uint8_t*) block.data(); // pointer to the actual data to write to flash, excluding header
 
